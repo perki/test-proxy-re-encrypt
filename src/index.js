@@ -20,17 +20,16 @@ const api = new API();
  */
 
 
-
 // 1- User creates his keys
 const userKeys = lib.generateKeys();
 
 // 2- User communicates his public key to the server
 api.postPublicKeys('user1', {publicKey: userKeys.publicKey, signPublicKey: userKeys.signPublicKey});
 
-// 3- Somone post Data to the server
+// 3- Somoene post Data to the server (any one can send unecrypted data to the server)
 api.postUnencryptedData('user1', 'Unencrypted from someone');
 
-// 4- User get his data
+// 4- User get his own data and decrypt it
 console.log('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
 
 // 5- A target send a request to access user data 
