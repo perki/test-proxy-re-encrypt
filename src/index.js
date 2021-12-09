@@ -3,6 +3,24 @@ const API = require('./api');
 
 const api = new API();
 
+
+/**
+ * We have two persons
+ *  - "user" is an individual using and 'api' service
+ *  - "target" is anothe individual who gets access to "user" data in r/w mode using the 'api' service
+ * 
+ *  The 'api' only holds encrypted data, 
+ *      'user' only can decrypt the data.
+ *      'target' can ddcrypt the data only when transformed by 'api' for him.
+ * 
+ *  The data is encrypted 'end' to 'end' with a central repository encrypted.
+ * 
+ *  An "attacker", should have either the private key of "user" or 
+ *      the private key of "target" + the transform key hold on "api".
+ */
+
+
+
 // 1- User creates his keys
 const userKeys = lib.generateKeys();
 
