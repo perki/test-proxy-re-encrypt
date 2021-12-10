@@ -24,9 +24,9 @@ const api = new API();
 const userKeys = lib.generateKeys();
 
 // 2- User communicates his public key to the server
-api.postPublicKeys('user1', {publicKey: userKeys.publicKey, signPublicKey: userKeys.signPublicKey});
+api.createUser('user1', {publicKey: userKeys.publicKey, signPublicKey: userKeys.signPublicKey});
 
-// 3- Somoene post Data to the server (any one can send unecrypted data to the server)
+// 3- Someone post Data to the server (any one can send unecrypted data to the server)
 api.postUnencryptedData('user1', 'Unencrypted from someone');
 
 // 4- User get his own data and decrypt it
@@ -42,7 +42,7 @@ const userToTargetTransfromKey = lib.getTransformKey(userKeys, requestFromTarget
 api.postRecipient('user1', 'target1', userToTargetTransfromKey);
 
 // 6- Target Get Data from the server
-console.log('target get>', lib.decrypt(api.getDataFor('user1', 'target1'), targetKeys.privateKey));
+console.log('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
 
 // 7- User sends encrypted data
 api.postData('user1', lib.encrypt('Encrypted from user', userKeys.publicKey, userKeys.signPrivateKey));
@@ -54,4 +54,4 @@ api.postData('user1', lib.encrypt('Encrypted from target', api.getPublicKeys('us
 console.log('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
 
 // 10- Target get user's data
-console.log('target get>', lib.decrypt(api.getDataFor('user1', 'target1'), targetKeys.privateKey));
+console.log('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));

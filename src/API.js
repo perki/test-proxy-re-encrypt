@@ -5,7 +5,7 @@ class API {
     this.users = {};
     this.apiSignPrivateKey = lib.generateKeys().signPrivateKey; // we only need this for the server
   };
-  postPublicKeys(userid, keys) {
+  createUser(userid, keys) {
     // here we also fully initailize the user
     this.users[userid] = {keys: keys, data: [], recipients: {}};
   };
@@ -18,12 +18,15 @@ class API {
   postData(userid, encryptedValue) {
     this.users[userid].data.push(encryptedValue);
   }; 
-  getData(userid) {
-    return this.users[userid].data;
-  };
-  getDataFor(userid, recipientid) {
+  getData(userid, recipientid = 'personal') {
+    const encryptedData = this.users[userid].data;
+    
+    // if personal send raw encrypted data
+    if (recipientid === 'personal') return encryptedData;
+
+    // else traansform data
     const res = [];
-    for (const data of this.users[userid].data) {
+    for (const data of encryptedData) {
       res.push(lib.transform(data, this.users[userid].recipients[recipientid], this.apiSignPrivateKey));
     }
     return res;
