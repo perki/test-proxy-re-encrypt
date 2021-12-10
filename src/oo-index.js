@@ -33,7 +33,7 @@ class Access {
   getData() {
     const encryptedData = api.getData(this.userid, this.accessid);
     const decryptedData = lib.decrypt(encryptedData, this.keys.privateKey);
-    console.log(this.accessid + '>' + this.userid + '>' + decryptedData);
+    console.log(this.accessid + '>' + this.userid + '>', decryptedData);
     return decryptedData;
   }
 
