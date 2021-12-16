@@ -1,6 +1,9 @@
-const lib = require('./lib');
-lib.init(require('@ironcorelabs/recrypt-node-binding'));
-const API = require('./api');
+//const Recrypt = require('@ironcorelabs/recrypt-wasm-binding');
+import * as Recrypt from "@ironcorelabs/recrypt-wasm-binding";
+const lib = require('../src/lib');
+lib.init(Recrypt);
+
+const API = require('../src/api');
 
 const api = new API();
 
@@ -30,8 +33,13 @@ api.createUser('user1', {publicKey: userKeys.publicKey, signPublicKey: userKeys.
 // 3- Someone post Data to the server (any one can send unecrypted data to the server)
 api.postUnencryptedData('user1', 'Unencrypted from someone 😀');
 
+function clog() {
+  document.write(...arguments);
+  document.write('<br>');
+}
+
 // 4- User get his own data and decrypt it
-console.log('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
+clog('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
 
 // 5- A target send a request to access user data 
 const targetKeys = lib.generateKeys();
@@ -43,7 +51,7 @@ const userToTargetTransfromKey = lib.getTransformKey(userKeys, requestFromTarget
 api.postRecipient('user1', 'target1', userToTargetTransfromKey);
 
 // 6- Target Get Data from the server
-console.log('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
+clog('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
 
 // 7- User sends encrypted data
 api.postData('user1', lib.encrypt('Encrypted from user', userKeys.publicKey, userKeys.signPrivateKey));
@@ -52,7 +60,7 @@ api.postData('user1', lib.encrypt('Encrypted from user', userKeys.publicKey, use
 api.postData('user1', lib.encrypt('Encrypted from target', api.getPublicKeys('user1').publicKey, targetKeys.signPrivateKey));
 
 // 9- User get his data
-console.log('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
+clog('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
 
 // 10- Target get user's data
-console.log('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
+clog('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));

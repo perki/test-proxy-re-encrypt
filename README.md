@@ -5,11 +5,14 @@ Testing https://github.com/IronCoreLabs/recrypt-node-binding [IronCoreLabs](http
 
 Everything starts in src/index.js
 
-Obect oriented implementation in src/oo-index.js
+Object oriented implementation in src/oo-index.js
 
-```
-npm install
-node src/index.js
-node src/oo-index.js
-```
+- `npm install` setup
+- `npm run api` direct api example
+- `npm run oo` Object Oriented example
 
+Web:
+
+- `npm run build` Build web based example
+- `npm run web` Run webserver 
+- Open https://l.rec.la:4443 to see web based example 

@@ -1,6 +1,5 @@
-const Recrypt = require("@ironcorelabs/recrypt-node-binding");
-//Create a new Recrypt API instance
-const Api256 = new Recrypt.Api256();
+let Api256 = null;
+let utf8decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
 
 function encrypt(data, toPublicKey, fromSigningKey) {
   const plaintext = new Buffer.alloc(384);
@@ -28,7 +27,7 @@ function generateKeys() {
 function decrypt(encryptedArray, privateKey) {
   const res = [];
   for (const data of encryptedArray) {
-    const decrypted = Api256.decrypt(data, privateKey).toString('utf-8').replace(/\0/g, '')
+    const decrypted = utf8decoder.decode(Api256.decrypt(data, privateKey)).replace(/\0/g, '')
     res.push(decrypted);
   }
   return res;
@@ -43,5 +42,9 @@ module.exports = {
   decrypt,
   generateKeys,
   getTransformKey,
-  transform
+  transform,
+  init: (Recrypt) => {
+    //Create a new Recrypt API instance
+    Api256 = new Recrypt.Api256();
+  }
 }

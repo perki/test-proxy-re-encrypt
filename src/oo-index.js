@@ -1,8 +1,8 @@
 const lib = require('./lib');
+lib.init(require('@ironcorelabs/recrypt-node-binding'));
 const API = require('./api');
 
 const api = new API();
-
 
 /**
  * We have two persons
@@ -74,7 +74,7 @@ class User {
 const user = new User('user1');
 
 // 3- Someone post Data to the server (any one can send unecrypted data to the server)
-api.postUnencryptedData('user1', 'Unencrypted from someone');
+api.postUnencryptedData('user1', 'Unencrypted from someone 😀');
 
 // 4- User get his own data and decrypt it
 user.getData();
