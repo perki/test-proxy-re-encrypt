@@ -60,4 +60,30 @@ module.exports = function executeFlow(clog) {
   // 10- Target get user's data
   clog('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
 
+  // 11- User rotates his keys
+  const newUserKeys = lib.generateKeys();
+  // 11.1 Generate a trasform key for API
+  const apiTransformRotateKey = lib.getTransformKey(userKeys, newUserKeys.publicKey);
+  // 11.1 Generate new transform keys for recipients
+  const newRecipientTransformKeys = [];
+  for (const recipient of api.getRecipientsPublicKeys('user1')) {
+    newRecipientTransformKeys.push({
+      transformKey: lib.getTransformKey(newUserKeys, recipient.publicKey),
+      recipientid: recipient.recipientid
+    });
+  };
+  // 11.2 Update keys on api
+  api.rotateKeys('user1', 
+    { keys: { publicKey: newUserKeys.publicKey, signPublicKey: newUserKeys.signPublicKey }, 
+      transformKey: apiTransformRotateKey,
+      newRecipientTransformKeys: newRecipientTransformKeys
+    });
+
+  
+  // 12- User get his data
+  clog('user get>', lib.decrypt(api.getData('user1'), newUserKeys.privateKey));
+
+  // 13- Target get user's data
+  clog('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
+
 }

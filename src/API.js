@@ -37,6 +37,30 @@ class API {
   getPublicKeys(userid) {
     return this.users[userid].keys;
   }
+  getRecipientsPublicKeys(userid) {
+    const recipients = this.users[userid].recipients;
+    const res = [];
+    for (const recipientid in recipients) {
+      res.push({recipientid: recipientid, publicKey: recipients[recipientid].publicKeys.publicKey});
+    }
+    return res;
+  }
+
+  rotateKeys(userid, newKeys) {
+    this.users[userid].keys = newKeys.keys;
+    // transform all data for this user
+    const encryptedData = this.users[userid].data;
+    const res = [];
+    for (const data of encryptedData) {
+      res.push(lib.transform(data, newKeys.transformKey, this.apiSignPrivateKey));
+    }
+    this.users[userid].data = res;
+
+    // register new transforn keys for all recipients
+    for (const newRecipientKey of newKeys.newRecipientTransformKeys) {
+      this.users[userid].recipients[newRecipientKey.recipientid].transformKey = newRecipientKey.transformKey;
+    }
+  }
 }
 
 module.exports = API;
