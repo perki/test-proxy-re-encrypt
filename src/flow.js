@@ -30,11 +30,11 @@ module.exports = function executeFlow(clog) {
   // 2- User communicates his public key to the server
   api.createUser('user1', { publicKey: userKeys.publicKey, signPublicKey: userKeys.signPublicKey });
 
-  // 3- Someone post Data to the server (any one can send unecrypted data to the server)
+  // 3- Someone post Data to the server (any one can send unencrypted data to the server)
   api.postUnencryptedData('user1', 'Unencrypted from someone 😀');
 
   // 4- User get his own data and decrypt it
-  clog('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
+  clog('user get>', lib.decryptArray(api.getData('user1'), userKeys.privateKey));
 
   // 5- A target send a request to access user data 
   const targetKeys = lib.generateKeys();
@@ -46,7 +46,7 @@ module.exports = function executeFlow(clog) {
   api.postRecipient('user1', 'target1', { transformKey: userToTargetTransfromKey, publicKeys: requestFromTargetToUser });
 
   // 6- Target Get Data from the server
-  clog('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
+  clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
 
   // 7- User sends encrypted data
   api.postData('user1', lib.encrypt('Encrypted from user', userKeys.publicKey, userKeys.signPrivateKey));
@@ -55,10 +55,10 @@ module.exports = function executeFlow(clog) {
   api.postData('user1', lib.encrypt('Encrypted from target', api.getPublicKeys('user1').publicKey, targetKeys.signPrivateKey));
 
   // 9- User get his data
-  clog('user get>', lib.decrypt(api.getData('user1'), userKeys.privateKey));
+  clog('user get>', lib.decryptArray(api.getData('user1'), userKeys.privateKey));
 
   // 10- Target get user's data
-  clog('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
+  clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
 
   // 11- User rotates his keys
   const newUserKeys = lib.generateKeys();
@@ -81,9 +81,12 @@ module.exports = function executeFlow(clog) {
 
   
   // 12- User get his data
-  clog('user get>', lib.decrypt(api.getData('user1'), newUserKeys.privateKey));
+  clog('user get>', lib.decryptArray(api.getData('user1'), newUserKeys.privateKey));
 
   // 13- Target get user's data
-  clog('target get>', lib.decrypt(api.getData('user1', 'target1'), targetKeys.privateKey));
+  clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
 
+  // 14- Target rotates his keys
+  const newTargetKeys = lib.generateKeys();
+  
 }

@@ -32,7 +32,7 @@ class Access {
 
   getData() {
     const encryptedData = api.getData(this.userid, this.accessid);
-    const decryptedData = lib.decrypt(encryptedData, this.keys.privateKey);
+    const decryptedData = lib.decryptArray(encryptedData, this.keys.privateKey);
     console.log(this.accessid + '>' + this.userid + '>', decryptedData);
     return decryptedData;
   }
@@ -66,6 +66,29 @@ class User {
 
   postData(data) {
     this.personalAccess.postData(data);
+  }
+
+  rotateKeys() {
+    // create a new personal access
+    const newAccess = new Access(this.userid, 'personal');
+    // Generate a new transform key for API
+    const apiTransformRotateKey = lib.getTransformKey(this.personalAccess.keys, newAccess.getPublicKeys().publicKey);
+    // 11.1 Generate new transform keys for recipients
+    const newRecipientTransformKeys = [];
+    for (const recipient of api.getRecipientsPublicKeys('user1')) {
+      newRecipientTransformKeys.push({
+        transformKey: lib.getTransformKey(newUserKeys, recipient.publicKey),
+        recipientid: recipient.recipientid
+      });
+    };
+    // Update keys on api
+    api.rotateKeys('user1', 
+      { keys: { publicKey: newUserKeys.publicKey, signPublicKey: newUserKeys.signPublicKey }, 
+        transformKey: apiTransformRotateKey,
+        newRecipientTransformKeys: newRecipientTransformKeys
+      });
+    // Update keys on user
+    this.personalAccess = newAccess;
   }
 
 }
