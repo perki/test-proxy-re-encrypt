@@ -8,7 +8,7 @@
     "api": "node src/index.js",
     "oo": "node src/index.js",
     "build": "./node_modules/.bin/webpack",
-    "web": "./node_modules/.bin/rec.la ./dist"
+    "web": "./node_modules/.bin/rec.la ./docs"
   },
   "author": "",
   "license": "ISC",

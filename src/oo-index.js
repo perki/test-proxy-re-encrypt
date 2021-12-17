@@ -58,9 +58,10 @@ class User {
   }
 
   acceptAccessRequest(access) {
-    const userToTargetTransfromKey = lib.getTransformKey(this.personalAccess.keys, access.getPublicKeys().publicKey);
+    const requestPublicKeys = access.getPublicKeys();
+    const userToTargetTransfromKey = lib.getTransformKey(this.personalAccess.keys, requestPublicKeys.publicKey);
     // 5.3 user register the target as an authorized recipient on the server
-    api.postRecipient(this.userid, access.accessid, userToTargetTransfromKey);
+    api.postRecipient(this.userid, access.accessid, {transformKey: userToTargetTransfromKey, publicKeys: requestPublicKeys});
   }
 
   postData(data) {

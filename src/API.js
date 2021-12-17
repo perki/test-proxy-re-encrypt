@@ -27,12 +27,12 @@ class API {
     // else traansform data
     const res = [];
     for (const data of encryptedData) {
-      res.push(lib.transform(data, this.users[userid].recipients[recipientid], this.apiSignPrivateKey));
+      res.push(lib.transform(data, this.users[userid].recipients[recipientid].transformKey, this.apiSignPrivateKey));
     }
     return res;
   };
-  postRecipient(userid, recipientid, userToTargetTransfromKey) {
-    this.users[userid].recipients[recipientid] = userToTargetTransfromKey;
+  postRecipient(userid, recipientid, recipientKeys) {
+    this.users[userid].recipients[recipientid] = recipientKeys;
   };
   getPublicKeys(userid) {
     return this.users[userid].keys;
