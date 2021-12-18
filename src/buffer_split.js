@@ -1,3 +1,6 @@
+const utf8decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
+const utf8encoder = new TextEncoder(); // default 'utf-8' or 'utf8'
+
 const lib = require('./lib');
 lib.init(require('@ironcorelabs/recrypt-node-binding'));
 
@@ -18,12 +21,17 @@ const TYPES = {
     BUFFER: 1
 }
 
+function copyBuffInto(source, target, targetStart, sourceStart, sourceEnd) {
+  for (let i = 0; (sourceStart + i) < sourceEnd; i++) {
+    target[targetStart + i] = source[sourceStart + i];
+  }
+}
+
 function pack(obj) {
   let type = TYPES.JSON;
   let msg = null;
   msg = JSON.stringify(obj);
-
-  const msgBuff = new Buffer.from(msg, 'utf8');
+  const msgBuff = utf8encoder.encode(msg);
   const msgTotalLength = 2 + msgBuff.length;
   const lastLineLength = msgTotalLength % ENCRYPTED_DATA_SIZE;
 
@@ -31,14 +39,14 @@ function pack(obj) {
   console.log('msgBuff.length', msgBuff.length);
   let i = 0;
   while (i < msgBuff.length) {
-    const buff384 = new Buffer.alloc(ENCRYPTED_DATA_SIZE, 98);
+    const buff384 = new Uint8Array(ENCRYPTED_DATA_SIZE);
     if (i === 0) { // first line
       buff384[0] = type;
       buff384[1] = lastLineLength;
-      msgBuff.copy(buff384, 2, 0, ENCRYPTED_DATA_SIZE - 2);
+      copyBuffInto(msgBuff, buff384, 2, 0, ENCRYPTED_DATA_SIZE - 2);
       i += ENCRYPTED_DATA_SIZE - 2;
     } else {
-      msgBuff.copy(buff384, 0, i, i + ENCRYPTED_DATA_SIZE);
+      copyBuffInto(msgBuff, buff384, 0, i, i + ENCRYPTED_DATA_SIZE);
       i += ENCRYPTED_DATA_SIZE;
     }
     res.push(buff384);
