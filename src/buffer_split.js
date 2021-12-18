@@ -1,7 +1,6 @@
-const utf8decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
-const utf8encoder = new TextEncoder(); // default 'utf-8' or 'utf8'
 
 const lib = require('./lib');
+const buff384 = require('./lib/buff384')
 lib.init(require('@ironcorelabs/recrypt-node-binding'));
 
 const objectWithData = { 
@@ -14,83 +13,43 @@ const objectWithData = { 
   g: 'jakskaskaskjsajasj😀kaskjkjasjkskasjkkjsakjkskjsakjkjsakjkjjksajkasjjkasajk',
 }
 
-const ENCRYPTED_DATA_SIZE = 384;
+function flow(data) {
 
-const TYPES = {
-    JSON: 0, // handles, number, strings, booleans, null, objects, arrays
-    BUFFER: 1
-}
+  const packedMessage = buff384.pack(data);
 
-function copyBuffInto(source, target, targetStart, sourceStart, sourceEnd) {
-  for (let i = 0; (sourceStart + i) < sourceEnd; i++) {
-    target[targetStart + i] = source[sourceStart + i];
+  // 1- User creates his keys
+  const userKeys = lib.generateKeys();
+
+  // 2- A target send a request to access user data 
+  const targetKeys = lib.generateKeys();
+
+  // 3- user creates a transform key from his private key to the target public key
+  const userToTargetTransfromKey = lib.getTransformKey(userKeys, targetKeys.publicKey);
+
+  console.log(packedMessage);
+
+  const encryptedPack = [];
+  for (const packedChunk of packedMessage) {
+    encryptedPack.push(lib.encrypt384Buffer(packedChunk, userKeys.publicKey, userKeys.signPrivateKey));
   }
-}
 
-function pack(obj) {
-  let type = TYPES.JSON;
-  let msg = null;
-  msg = JSON.stringify(obj);
-  const msgBuff = utf8encoder.encode(msg);
-  const msgTotalLength = 2 + msgBuff.length;
-  const lastLineLength = msgTotalLength % ENCRYPTED_DATA_SIZE;
-
-  const res = [];
-  console.log('msgBuff.length', msgBuff.length);
-  let i = 0;
-  while (i < msgBuff.length) {
-    const buff384 = new Uint8Array(ENCRYPTED_DATA_SIZE);
-    if (i === 0) { // first line
-      buff384[0] = type;
-      buff384[1] = lastLineLength;
-      copyBuffInto(msgBuff, buff384, 2, 0, ENCRYPTED_DATA_SIZE - 2);
-      i += ENCRYPTED_DATA_SIZE - 2;
-    } else {
-      copyBuffInto(msgBuff, buff384, 0, i, i + ENCRYPTED_DATA_SIZE);
-      i += ENCRYPTED_DATA_SIZE;
-    }
-    res.push(buff384);
+  const decryptedPack = [];
+  for (let i = 0; i < encryptedPack.length; i++) {
+    const encryptedChunk = encryptedPack[i];
+    const decryptedPackChunk = lib.decrypt384Buffer(encryptedChunk, userKeys.privateKey);
+    decryptedPack.push(decryptedPackChunk);
   }
-  return res;
-}
 
-const packedMessage = pack(objectWithData);
-
-// 1- User creates his keys
-const userKeys = lib.generateKeys();
-
-// 2- A target send a request to access user data 
-const targetKeys = lib.generateKeys();
-
-// 3- user creates a transform key from his private key to the target public key
-const userToTargetTransfromKey = lib.getTransformKey(userKeys, targetKeys.publicKey);
-
-console.log(packedMessage);
-
-const encryptedPack = [];
-for (const packedChunk of packedMessage) {
-  encryptedPack.push(lib.encrypt384Buffer(packedChunk, userKeys.publicKey, userKeys.signPrivateKey));
-}
-
-const decryptedPack = [];
-for (let i = 0; i < encryptedPack.length; i++) {
-  const encryptedChunk = encryptedPack[i];
-  const decryptedPackChunk = lib.decrypt384Buffer(encryptedChunk, userKeys.privateKey);
-  decryptedPack.push(decryptedPackChunk);
-}
-const type = decryptedPack[0][0];
-const lastLineLength = decryptedPack[0][1];
-console.log(decryptedPack.map(x => x.toString('utf8')));
-decryptedPack[decryptedPack.length-1] = decryptedPack[decryptedPack.length-1].slice(0, lastLineLength ); // remove the last bytes of last line
-decryptedPack[0] = decryptedPack[0].slice(2); // remove the 2 first bytes of first line
-
-console.log(type, lastLineLength, Buffer.concat(decryptedPack).toString());
-if (type === TYPES.JSON) {
-  const result = JSON.parse(Buffer.concat(decryptedPack).toString('utf8'));
-  console.log(result);
+  console.log(buff384.unpack(decryptedPack));
 }
 
 
+flow(objectWithData);
 
 
+let d = 'a';
+for (let i = 0; i < 1000; i++) {
+  d += 'a';
+  flow(d);
+}
 
