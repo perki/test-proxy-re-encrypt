@@ -39,10 +39,10 @@ function copyBuffInto(source, target, targetStart, sourceStart, sourceEnd) {
 function pack(data) {
   let type = TYPES.JSON;
   let msg = null;
-  msg = JSON.stringify(data);
+  msg = JSON.stringify(data, null, 2);
   const msgBuff = utf8encoder.encode(msg);
   const msgTotalLength = HEADER_LENGTH + msgBuff.length;
-  const lastLineLength = msgTotalLength % ENCRYPTED_DATA_SIZE;
+  const lastLineLength = msgTotalLength % ENCRYPTED_DATA_SIZE || ENCRYPTED_DATA_SIZE; // if 0 then 384
 
   const res = [];
   console.log('msgBuff.length', msgBuff.length);
@@ -69,16 +69,29 @@ function pack(data) {
 function unpack(decryptedPack) {
   const type = decryptedPack[0][0];
   const lastLineLength = decryptedPack[0][1] + decryptedPack[0][2];
-  console.log(decryptedPack.map(x => x.toString('utf8')));
-  if (lastLineLength > 0)
-    decryptedPack[decryptedPack.length-1] = decryptedPack[decryptedPack.length-1].slice(0, lastLineLength ); // remove the last bytes of last line
-  decryptedPack[0] = decryptedPack[0].slice(HEADER_LENGTH); // remove the 3 firsts bytes of first line
-  console.log(type, lastLineLength, Buffer.concat(decryptedPack).toString());
+  // totalLength can be derived from the number of lines;
+  const totalLength = ENCRYPTED_DATA_SIZE * ( decryptedPack.length - 1) + lastLineLength - HEADER_LENGTH;
+  const resBuff = new Uint8Array(totalLength);
+
+  let pos = 0;
+  for (let i = 0; i < decryptedPack.length; i++) {
+    console.log('l>', i, pos, decryptedPack.length, lastLineLength);
+    const stripFirst = i === 0 ? HEADER_LENGTH : 0; // first line is stripped
+    if (i === decryptedPack.length - 1) { // last line
+      copyBuffInto(decryptedPack[i], resBuff, pos, stripFirst, lastLineLength);
+    } else {
+      copyBuffInto(decryptedPack[i], resBuff, pos, stripFirst, ENCRYPTED_DATA_SIZE);
+      pos += ENCRYPTED_DATA_SIZE - stripFirst;
+    }
+  }
+  
   if (type === TYPES.JSON) {
-    const result = JSON.parse(Buffer.concat(decryptedPack).toString('utf8'));
+    const resString = utf8decoder.decode(resBuff);
+    console.log('resString>', resString, '<');
+    const result = JSON.parse(resString);
     return result;
   }
-  return Buffer.concat(decryptedPack);
+  return resBuff;
 }
 
 
