@@ -26,7 +26,6 @@ function flow(data) {
   // 3- user creates a transform key from his private key to the target public key
   const userToTargetTransfromKey = lib.getTransformKey(userKeys, targetKeys.publicKey);
 
-  console.log(packedMessage);
 
   const encryptedPack = [];
   for (const packedChunk of packedMessage) {

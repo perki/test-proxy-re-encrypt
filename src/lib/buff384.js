@@ -42,10 +42,9 @@ function pack(data) {
   msg = JSON.stringify(data, null, 2);
   const msgBuff = utf8encoder.encode(msg);
   const msgTotalLength = HEADER_LENGTH + msgBuff.length;
-  const lastLineLength = msgTotalLength % ENCRYPTED_DATA_SIZE || ENCRYPTED_DATA_SIZE; // if 0 then 384
+  const lastLineLength = msgTotalLength % ENCRYPTED_DATA_SIZE || ENCRYPTED_DATA_SIZE; // if 0 then 384
 
-  const res = [];
-  console.log('msgBuff.length', msgBuff.length);
+  const arrayOfBufferRes = [];
   let i = 0;
   while (i < msgBuff.length) {
     const buff384 = new Uint8Array(ENCRYPTED_DATA_SIZE);
@@ -53,16 +52,16 @@ function pack(data) {
       buff384[0] = type;
       buff384[1] = lastLineLength > 254 ? 255 : lastLineLength;
       buff384[2] = lastLineLength > 254 ? lastLineLength - 255: 0;
-      console.log('******', buff384);
+   
       copyBuffInto(msgBuff, buff384, HEADER_LENGTH, 0, ENCRYPTED_DATA_SIZE - HEADER_LENGTH);
       i += ENCRYPTED_DATA_SIZE - HEADER_LENGTH;
     } else {
       copyBuffInto(msgBuff, buff384, 0, i, i + ENCRYPTED_DATA_SIZE);
       i += ENCRYPTED_DATA_SIZE;
     }
-    res.push(buff384);
+    arrayOfBufferRes.push(buff384);
   }
-  return res;
+  return arrayOfBufferRes;
 }
 
 
@@ -75,7 +74,6 @@ function unpack(decryptedPack) {
 
   let pos = 0;
   for (let i = 0; i < decryptedPack.length; i++) {
-    console.log('l>', i, pos, decryptedPack.length, lastLineLength);
     const stripFirst = i === 0 ? HEADER_LENGTH : 0; // first line is stripped
     if (i === decryptedPack.length - 1) { // last line
       copyBuffInto(decryptedPack[i], resBuff, pos, stripFirst, lastLineLength);
@@ -87,7 +85,6 @@ function unpack(decryptedPack) {
   
   if (type === TYPES.JSON) {
     const resString = utf8decoder.decode(resBuff);
-    console.log('resString>', resString, '<');
     const result = JSON.parse(resString);
     return result;
   }
