@@ -14,24 +14,23 @@ const objectWithData = { 
 const ENCRYPTED_DATA_SIZE = 384;
 
 const TYPES = {
-    NUMBER: 0,
-    STRING: 1,
-    OBJECT: 2,
-    JSON: 3,
-    BUFFER: 4
+    JSON: 0, // handles, number, strings, booleans, null, objects, arrays
+    BUFFER: 1
 }
 
 function pack(obj) {
-  const type = 3;
-  const str = JSON.stringify(obj);
-  const msgBuff = new Buffer.from(str, 'utf8');
+  let type = TYPES.JSON;
+  let msg = null;
+  msg = JSON.stringify(obj);
+
+  const msgBuff = new Buffer.from(msg, 'utf8');
   const msgTotalLength = 2 + msgBuff.length;
   const lastLineLength = msgTotalLength % ENCRYPTED_DATA_SIZE;
 
   const res = [];
   console.log('msgBuff.length', msgBuff.length);
   let i = 0;
-  while (i < msgTotalLength) {
+  while (i < msgBuff.length) {
     const buff384 = new Buffer.alloc(ENCRYPTED_DATA_SIZE, 98);
     if (i === 0) { // first line
       buff384[0] = type;
@@ -39,7 +38,7 @@ function pack(obj) {
       msgBuff.copy(buff384, 2, 0, ENCRYPTED_DATA_SIZE - 2);
       i += ENCRYPTED_DATA_SIZE - 2;
     } else {
-      msgBuff.copy(buff384, 0, i + 2, ENCRYPTED_DATA_SIZE);
+      msgBuff.copy(buff384, 0, i, i + ENCRYPTED_DATA_SIZE);
       i += ENCRYPTED_DATA_SIZE;
     }
     res.push(buff384);
@@ -73,8 +72,9 @@ for (let i = 0; i < encryptedPack.length; i++) {
 }
 const type = decryptedPack[0][0];
 const lastLineLength = decryptedPack[0][1];
-decryptedPack[0] = decryptedPack[0].slice(2); // remove the 2 first bytes of first line
+console.log(decryptedPack.map(x => x.toString('utf8')));
 decryptedPack[decryptedPack.length-1] = decryptedPack[decryptedPack.length-1].slice(0, lastLineLength ); // remove the last bytes of last line
+decryptedPack[0] = decryptedPack[0].slice(2); // remove the 2 first bytes of first line
 
 console.log(type, lastLineLength, Buffer.concat(decryptedPack).toString());
 if (type === TYPES.JSON) {
