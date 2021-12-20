@@ -39,16 +39,23 @@ function flow(data) {
     decryptedPack.push(decryptedPackChunk);
   }
 
-  console.log(buff384.unpack(decryptedPack));
+  //console.log(buff384.unpack(decryptedPack));
 }
 
 
 flow(objectWithData);
 
+const stats = {}
 
 let d = 'a';
-for (let i = 0; i < 1000; i++) {
-  d += 'a';
+for (let i = 0; i < 1000; i += 1) {
+  d += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  const time = Date.now();
   flow(d);
+  const diff = Date.now() - time;
+  stats[d.length] = diff;
+  console.log(d.length, diff, d.length / diff);
 }
-
+const fs = require('fs');
+fs.writeFileSync('stats.json', JSON.stringify(stats, null, 2));
+console.log(stats);
