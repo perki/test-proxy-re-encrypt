@@ -38,7 +38,7 @@ function flow(data) {
     const decryptedPackChunk = lib.decrypt384Buffer(encryptedChunk, userKeys.privateKey);
     decryptedPack.push(decryptedPackChunk);
   }
-
+  
   //console.log(buff384.unpack(decryptedPack));
 }
 
