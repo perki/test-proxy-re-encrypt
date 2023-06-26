@@ -9,11 +9,11 @@ module.exports = function executeFlow(clog) {
   /**
    * We have two persons
    *  - "user" is an individual using and 'api' service
-   *  - "target" is anothe individual who gets access to "user" data in r/w mode using the 'api' service
+   *  - "target" is another individual who gets access to "user" data in r/w mode using the 'api' service
    * 
    *  The 'api' only holds encrypted data, 
    *      'user' only can decrypt the data.
-   *      'target' can ddcrypt the data only when transformed by 'api' for him.
+   *      'target' can decrypt the data only when transformed by 'api' for him.
    * 
    *  The data is encrypted 'end' to 'end' with a central repository encrypted.
    * 
@@ -22,19 +22,41 @@ module.exports = function executeFlow(clog) {
    */
 
 
-  // 1- User creates his keys
-  const userKeys = lib.generateKeys();
+  // 1- User creates his keyRing
+  const userKeys = {};
 
   // 2- User communicates his public key to the server
   api.createUser('user1', { publicKey: userKeys.publicKey, signPublicKey: userKeys.signPublicKey });
 
+  const keyForStreamA = lib.generateKeys('user1:streamA:0');
+  userKeys[keyForStreamA.public.id] = keyForStreamA;
+
+  // 2.1- Create a stream
+  api.createStream('user1', {
+    id: 'streamA', 
+    clientData: { 
+      encryption : { 
+        'recrypt-aes-256-gcm-v1': keyForStreamA.public
+      } 
+    }
+  });
+
   // 3- Someone post Data to the server (any one can send unencrypted data to the server)
-  api.postUnencryptedData('user1', 'Unencrypted from someone 😀');
+  api.postUnencryptedEvent('user1', {id: 'e1', streamIds: ['streamA'], type: 'note/txt', content: 'Unencrypted from someone 😀'});
 
+  
   // 4- User get his own data and decrypt it
-  clog('user get>', lib.decryptArray(api.getData('user1'), userKeys.privateKey));
+  const userEvents = api.getData('user1');
+  for (const event of userEvents) { // find a matching key 
+    const keyId = Object.keys(event.content)[0];
+    const userKey = userKeys[keyId];
+    console.log(userKeys);
+    const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
+    Object.assign(event, decryptedData);
+    clog('user get>', event);
+  }
 
-
+  /** 
   // 5- A target send a request to access user data 
   const targetKeys = lib.generateKeys();
   // 5.1 target communicates his public key to the user
@@ -87,4 +109,5 @@ module.exports = function executeFlow(clog) {
 
   // 14- Target rotates his keys
   const newTargetKeys = lib.generateKeys();
+  */
 }

@@ -19,14 +19,17 @@ function getTransformKey(userKeys, targetPublicKey) {
   return Api256.generateTransformKey(userKeys.privateKey, targetPublicKey, userKeys.signPrivateKey);
 }
 
-function generateKeys() {
+function generateKeys(id) {
   const keys = Api256.generateKeyPair();
   const signKeys = Api256.generateEd25519KeyPair();
   return {
-    publicKey: keys.publicKey,
     privateKey: keys.privateKey,
-    signPublicKey: signKeys.publicKey,
-    signPrivateKey: signKeys.privateKey
+    signPrivateKey: signKeys.privateKey,
+    public : {
+      id: id || Math.random().toString(36).substring(2, 6),
+      publicKey: keys.publicKey,
+      signPublicKey: signKeys.publicKey
+    }
   }
 }
 
