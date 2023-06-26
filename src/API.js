@@ -1,4 +1,8 @@
-const lib = require('./lib');
+/**
+ * Mock an API
+ */
+
+const lib = require('./lib/recrypt');
 
 class API {
   constructor () {

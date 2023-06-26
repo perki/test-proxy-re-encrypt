@@ -3,18 +3,16 @@ let utf8decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
 
 const ENCRYPTED_DATA_SIZE = 384;
 
+const aes256gcm = require('./aes-256-gcm');
+
 function encrypt(data, toPublicKey, fromSigningKey) {
-  const buff384 = new Buffer.alloc(ENCRYPTED_DATA_SIZE);
-  const msgBuff = new Buffer.from(data, 'utf8');
-  buff384.fill(msgBuff, 0, msgBuff.length);
-  const encryptedData = encrypt384Buffer(buff384, toPublicKey, fromSigningKey);
-  return encryptedData;
+  const password = get384Password();
+  const encryptedPassword = Api256.encrypt(password, toPublicKey, fromSigningKey);
+  const encryptedData = aes256gcm.encrypt(data, password);
+  const encrypted = {encryptedPassword, encryptedData};
+  return encrypted;
 }
 
-function encrypt384Buffer(data, toPublicKey, fromSigningKey) {
-  const encryptedData = Api256.encrypt(data, toPublicKey, fromSigningKey);
-  return encryptedData;
-}
 
 
 function getTransformKey(userKeys, targetPublicKey) {
@@ -32,13 +30,10 @@ function generateKeys() {
   }
 }
 
-
-function decrypt384Buffer(data, privateKey) {
-  return Api256.decrypt(data, privateKey);
-}
-
 function decrypt(data, privateKey) {
-  return utf8decoder.decode(Api256.decrypt(data, privateKey)).replace(/\0/g, '');
+  const password = Api256.decrypt(data.encryptedPassword, privateKey);
+  const decryptedData = aes256gcm.decrypt(data.encryptedData, password);
+  return decryptedData;
 }
 
 function decryptArray(encryptedArray, privateKey) {
@@ -50,20 +45,22 @@ function decryptArray(encryptedArray, privateKey) {
 }
 
 function transform(data, toPublicKey, fromSigningKey) {
-  return Api256.transform(data, toPublicKey, fromSigningKey);
+  const transformed = {
+    encryptedPassword: Api256.transform(data.encryptedPassword, toPublicKey, fromSigningKey),
+    encryptedData: data.encryptedData
+  }
+  return transformed;
 }
 
-function get384PlaintText() {
+function get384Password() {
   return Api256.generatePlaintext();
 }
 
 module.exports = {
-  get384PlaintText,
+  get384Password,
   encrypt,
-  encrypt384Buffer,
   decryptArray,
   decrypt,
-  decrypt384Buffer,
   generateKeys,
   getTransformKey,
   transform,

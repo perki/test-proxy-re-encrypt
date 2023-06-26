@@ -1,8 +1,6 @@
 
-const lib = require('./lib');
+const lib = require('./lib/recrypt');
 const API = require('./api');
-
-
 
 module.exports = function executeFlow(clog) {
 
@@ -35,6 +33,7 @@ module.exports = function executeFlow(clog) {
 
   // 4- User get his own data and decrypt it
   clog('user get>', lib.decryptArray(api.getData('user1'), userKeys.privateKey));
+
 
   // 5- A target send a request to access user data 
   const targetKeys = lib.generateKeys();
@@ -88,5 +87,4 @@ module.exports = function executeFlow(clog) {
 
   // 14- Target rotates his keys
   const newTargetKeys = lib.generateKeys();
-  
 }

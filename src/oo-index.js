@@ -1,4 +1,4 @@
-const lib = require('./lib');
+const lib = require('./lib/recrypt');
 lib.init(require('@ironcorelabs/recrypt-node-binding'));
 const API = require('./api');
 

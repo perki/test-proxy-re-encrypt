@@ -10,7 +10,7 @@ const pryvUserSignKeys = Api256.generateEd25519KeyPair();
 
 //Generate a plaintext to encrypt
 const plaintext = new Buffer.alloc(384);
-const msg = 'Helloé¢ 😜 World!';
+const msg = 'Helloé¢ 😜 World!'; // <== Wrong approach, text is not on ellptic curve
 const msgBuff = new Buffer.from(msg, 'utf8');
 plaintext.fill(msgBuff, 0, msgBuff.length);
 

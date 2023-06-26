@@ -1,6 +1,6 @@
 //const Recrypt = require('@ironcorelabs/recrypt-wasm-binding');
 import * as Recrypt from "@ironcorelabs/recrypt-wasm-binding";
-const lib = require('../src/lib');
+const lib = require('../src/lib/recrypt');
 lib.init(Recrypt);
 
 function clog() {
