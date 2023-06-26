@@ -53,7 +53,12 @@ function transform(data, toPublicKey, fromSigningKey) {
   return Api256.transform(data, toPublicKey, fromSigningKey);
 }
 
+function get384PlaintText() {
+  return Api256.generatePlaintext();
+}
+
 module.exports = {
+  get384PlaintText,
   encrypt,
   encrypt384Buffer,
   decryptArray,

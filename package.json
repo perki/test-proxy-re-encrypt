@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@aldenml/ecc": "^1.0.4",
-    "@ironcorelabs/recrypt-node-binding": "^0.8.0",
+    "@ironcorelabs/recrypt-node-binding": "^0.9.1",
     "@ironcorelabs/recrypt-wasm-binding": "^0.6.0",
     "fix-esm": "^1.0.1"
   },
