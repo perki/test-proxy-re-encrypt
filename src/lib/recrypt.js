@@ -7,7 +7,7 @@ const aes256gcm = require('./aes-256-gcm');
 
 function encrypt(data, toPublicKey, fromSigningKey) {
   const password = get384Password();
-  const encryptedPassword = Api256.encrypt(password, toPublicKey, fromSigningKey);
+  const encryptedPassword = Api256.encrypt(password, stringToPublicKey(toPublicKey), stringToKey(fromSigningKey));
   const encryptedData = aes256gcm.encrypt(data, password);
   const encrypted = {encryptedPassword, encryptedData};
   return encrypted;
@@ -16,25 +16,29 @@ function encrypt(data, toPublicKey, fromSigningKey) {
 
 
 function getTransformKey(userKeys, targetPublicKey) {
-  return Api256.generateTransformKey(userKeys.privateKey, targetPublicKey, userKeys.signPrivateKey);
+  return Api256.generateTransformKey(
+      stringToKey(userKeys.privateKey), 
+      stringToPublicKey(targetPublicKey), 
+      stringToKey(userKeys.signPrivateKey));
 }
 
 function generateKeys(id) {
   const keys = Api256.generateKeyPair();
   const signKeys = Api256.generateEd25519KeyPair();
-  return {
-    privateKey: keys.privateKey,
-    signPrivateKey: signKeys.privateKey,
+  const key = {
+    privateKey: keyToString(keys.privateKey),
+    signPrivateKey: keyToString(signKeys.privateKey),
     public : {
       id: id || Math.random().toString(36).substring(2, 6),
-      publicKey: keys.publicKey,
-      signPublicKey: signKeys.publicKey
+      publicKey: publicKeyToString(keys.publicKey),
+      signPublicKey: keyToString(signKeys.publicKey)
     }
   }
+  return key;
 }
 
 function decrypt(data, privateKey) {
-  const password = Api256.decrypt(data.encryptedPassword, privateKey);
+  const password = Api256.decrypt(data.encryptedPassword, stringToKey(privateKey));
   const decryptedData = aes256gcm.decrypt(data.encryptedData, password);
   return decryptedData;
 }
@@ -70,5 +74,25 @@ module.exports = {
   init: (Recrypt) => {
     //Create a new Recrypt API instance
     Api256 = new Recrypt.Api256();
+  }
+}
+
+function keyToString(buffer) {
+  return buffer.toString('base64');
+}
+
+function stringToKey(string) {
+  return Buffer.from(string, 'base64');
+}
+
+function publicKeyToString(publicKey) {
+  return publicKey.x.toString('base64') + ' ' + publicKey.y.toString('base64');
+}
+
+function stringToPublicKey(string) {
+  const [x, y] = string.split(' ');
+  return {
+    x: Buffer.from(x, 'base64'),
+    y: Buffer.from(y, 'base64'),
   }
 }
