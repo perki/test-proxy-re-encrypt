@@ -13,6 +13,12 @@ function encrypt(data, toPublicKey, fromSigningKey) {
   return encrypted;
 }
 
+function encryptWithPassword(data, password ) {
+  const encryptedData = aes256gcm.encrypt(data, password);
+  const encrypted = { encryptedData };
+  return encrypted;
+}
+
 
 
 function getTransformKey(userKeys, targetPublicKey) {
@@ -25,20 +31,33 @@ function getTransformKey(userKeys, targetPublicKey) {
 function generateKeys(id) {
   const keys = Api256.generateKeyPair();
   const signKeys = Api256.generateEd25519KeyPair();
+  const password = get384Password();
+  const encryptedPassword = encryptedPasswordToString(Api256.encrypt(password, keys.publicKey, signKeys.privateKey));
   const key = {
     privateKey: keyToString(keys.privateKey),
     signPrivateKey: keyToString(signKeys.privateKey),
     public : {
       id: id || Math.random().toString(36).substring(2, 6),
       publicKey: publicKeyToString(keys.publicKey),
-      signPublicKey: keyToString(signKeys.publicKey)
+      signPublicKey: keyToString(signKeys.publicKey),
+      encryptedPassword
     }
   }
   return key;
 }
 
+function decryptPassword(encryptedPassword, privateKey) {
+  const password = Api256.decrypt(stringToEncryptedPassword(encryptedPassword), stringToKey(privateKey));
+  return password;
+}
+
 function decrypt(data, privateKey) {
-  const password = Api256.decrypt(stringToEncryptedPassword(data.encryptedPassword), stringToKey(privateKey));
+  const password = decryptPassword(data.encryptedPassword, privateKey);
+  const decryptedData = decryptWithPassword(data, password);
+  return decryptedData;
+}
+
+function decryptWithPassword(data, password) {
   const decryptedData = aes256gcm.decrypt(data.encryptedData, password);
   return decryptedData;
 }
@@ -66,7 +85,10 @@ function get384Password() {
 module.exports = {
   get384Password,
   encrypt,
+  encryptWithPassword,
+  decryptPassword,
   decryptArray,
+  decryptWithPassword,
   decrypt,
   generateKeys,
   getTransformKey,

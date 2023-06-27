@@ -44,6 +44,16 @@ module.exports = function executeFlow(clog) {
   // 3- Someone post Data to the server (any one can send unencrypted data to the server)
   api.postUnencryptedEvent('user1', {id: 'e1', streamIds: ['streamA'], type: 'note/txt', content: 'Unencrypted from someone 😀'});
 
+  // 4- Create client side encrypted data 
+  const eventA = {id: 'e2', streamIds: ['streamA'], type: 'note/txt', content: 'Encrypted by from myself'};
+  const keyId = 'user1:' + eventA.streamIds[0] + ':0';
+  const userKey = userKeys[keyId];
+  const password = lib.decryptPassword(userKey.public.encryptedPassword, userKey.privateKey);
+  const encryptedEventContent = lib.encryptWithPassword({type: eventA.type, content: eventA.content}, password);
+  const encryptedEventA = structuredClone(eventA);
+  encryptedEventA.type = 'encrypted/recrypt-aes-256-gcm-v1';
+  encryptedEventA.content = { [keyId] :  encryptedEventContent };
+  api.postEvent('user1', encryptedEventA);
   
   // 4- User get his own data and decrypt it
   const userEvents = api.getData('user1');
@@ -51,8 +61,13 @@ module.exports = function executeFlow(clog) {
     clog('user get encrypted>', event.content);
     const keyId = Object.keys(event.content)[0];
     const userKey = userKeys[keyId];
-    const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
-    Object.assign(event, decryptedData);
+    if (event.content[keyId].encryptedPassword) {
+      const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
+      Object.assign(event, decryptedData);
+    } else {
+      const decryptedData = lib.decryptWithPassword(event.content[keyId], lib.decryptPassword(userKey.public.encryptedPassword, userKey.privateKey));
+      Object.assign(event, decryptedData);
+    }
     clog('user get decrypted>', event);
   }
 
