@@ -22,10 +22,11 @@ function encryptWithPassword(data, password ) {
 
 
 function getTransformKey(userKeys, targetPublicKey) {
-  return Api256.generateTransformKey(
+  const transformKey = Api256.generateTransformKey(
       stringToKey(userKeys.privateKey), 
       stringToPublicKey(targetPublicKey), 
       stringToKey(userKeys.signPrivateKey));
+  return transformKeyToString(transformKey);
 }
 
 function generateKeys(id) {
@@ -70,9 +71,17 @@ function decryptArray(encryptedArray, privateKey) {
   return res;
 }
 
+function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
+  const transformedPassword = Api256.transform(
+    stringToEncryptedPassword(encryptedPassword), 
+    stringToTransformkey(transformKey), 
+    stringToKey(fromSigningKey));
+  return encryptedPasswordToString(transformedPassword);
+}
+
 function transform(data, toPublicKey, fromSigningKey) {
   const transformed = {
-    encryptedPassword: Api256.transform(data.encryptedPassword, toPublicKey, fromSigningKey),
+    encryptedPassword: Api256.transform(data, toPublicKey, fromSigningKey),
     encryptedData: data.encryptedData
   }
   return transformed;
@@ -92,6 +101,7 @@ module.exports = {
   decrypt,
   generateKeys,
   getTransformKey,
+  transformPassword,
   transform,
   init: (Recrypt) => {
     //Create a new Recrypt API instance
@@ -126,9 +136,29 @@ function encryptedPasswordToString(data) {
     data.authHash.toString('base64'),
     data.publicSigningKey.toString('base64'),
     data.signature.toString('base64'),
-    data.transformBlocks.map((b) => b.toString('base64'))
+    data.transformBlocks.map(transformBlockToObjectOfStrings)
   ];
   return JSON.stringify(res);
+}
+
+function transformBlockToObjectOfStrings(transformBlock) {
+  const res = {
+    publicKey: publicKeyToString(transformBlock.publicKey),
+    encryptedTempKey: keyToString(transformBlock.encryptedTempKey),
+    randomTransformPublicKey: publicKeyToString(transformBlock.randomTransformPublicKey),
+    randomTransformEncryptedTempKey: keyToString(transformBlock.randomTransformEncryptedTempKey)
+  }
+  return res;
+}
+
+function objectOfStringsToTransformBlock(transformBlockS) {
+  const res = {
+    publicKey: stringToPublicKey(transformBlockS.publicKey),
+    encryptedTempKey: stringToKey(transformBlockS.encryptedTempKey),
+    randomTransformPublicKey: stringToPublicKey(transformBlockS.randomTransformPublicKey),
+    randomTransformEncryptedTempKey: stringToKey(transformBlockS.randomTransformEncryptedTempKey)
+  }
+  return res;
 }
 
 function stringToEncryptedPassword(string) {
@@ -139,7 +169,32 @@ function stringToEncryptedPassword(string) {
     authHash: Buffer.from(authHashS, 'base64'),
     publicSigningKey: Buffer.from(publicSigningKeyS, 'base64'),
     signature: Buffer.from(signatureS, 'base64'),
-    transformBlocks: transformBlocksS.map((s) => Buffer.from(s, 'base64'))
+    transformBlocks: transformBlocksS.map(objectOfStringsToTransformBlock)
+  }
+  return res;
+}
+
+function transformKeyToString(transfromKey) {
+  const res = [
+    publicKeyToString(transfromKey.toPublicKey),
+    publicKeyToString(transfromKey.ephemeralPublicKey),
+    transfromKey.encryptedTempKey.toString('base64'),
+    transfromKey.hashedTempKey.toString('base64'),
+    transfromKey.publicSigningKey.toString('base64'),
+    transfromKey.signature.toString('base64')
+  ];
+  return JSON.stringify(res);
+}
+
+function stringToTransformkey(string) {
+  const [toPublicKeyS, ephemeralPublicKeyS, encryptedTempKeyS, hashedTempKeyS, publicSigningKeyS, signatureS] = JSON.parse(string);
+  const res = {
+    toPublicKey: stringToPublicKey(toPublicKeyS),
+    ephemeralPublicKey: stringToPublicKey(ephemeralPublicKeyS),
+    encryptedTempKey: Buffer.from(encryptedTempKeyS, 'base64'),
+    hashedTempKey: Buffer.from(hashedTempKeyS, 'base64'),
+    publicSigningKey: Buffer.from(publicSigningKeyS, 'base64'),
+    signature: Buffer.from(signatureS, 'base64')
   }
   return res;
 }

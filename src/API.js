@@ -34,18 +34,38 @@ class API {
   postEvent(userId, encryptedEvent) {
     this.users[userId].events.push(encryptedEvent);
   }; 
-  getData(userId, recipientid = 'personal') {
-    const encryptedData = this.users[userId].events;
+  getEvents(fromUserId, toUserId = 'personal') {
+    const events = structuredClone(this.users[fromUserId].events);
     
     // if personal send raw encrypted data
-    if (recipientid === 'personal') return encryptedData;
+    if (toUserId === 'personal') return events;
 
     // else traansform data
-    const res = [];
-    for (const data of encryptedData) {
-      res.push(lib.transform(data, this.users[userId].recipients[recipientid].transformKey, this.apiSignPrivateKey));
+    const transformKeys = this.users[fromUserId].recipients[toUserId].transformKeys;
+    for (const event of events) {
+      const keyId = Object.keys(event.content)[0];
+      const transformKey = transformKeys[keyId];
+      if (event.content[keyId].encryptedPassword) {
+        event.content[keyId].encryptedPassword = lib.transformPassword(event.content[keyId].encryptedPassword, transformKey, this.apiSignPrivateKey);
+      } else {
+        // do nothing recipient can use password encrypted in streamId
+      }
     }
-    return res;
+    return events;
+  };
+  getStreams(fromUserId, toUserId) {
+    const streams = structuredClone(this.users[fromUserId].streams);
+    const transformKeys = this.users[fromUserId].recipients[toUserId].transformKeys;
+    for (const [streamId, stream] of Object.entries(streams)) {
+      const encryption = stream.clientData.encryption;
+      if (encryption != null && encryption['recrypt-aes-256-gcm-v1'] != null) {
+        const encryptionItem = encryption['recrypt-aes-256-gcm-v1'];
+        const keyId = fromUserId + ':' + streamId + ':0';
+        const transformKey = transformKeys[keyId];
+        encryptionItem.encryptedPassword = lib.transformPassword(encryptionItem.encryptedPassword, transformKey, this.apiSignPrivateKey);
+      }
+    }
+    return streams;
   };
   postRecipient(userId, recipientid, recipientKeys) {
     this.users[userId].recipients[recipientid] = recipientKeys;

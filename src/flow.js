@@ -56,34 +56,52 @@ module.exports = function executeFlow(clog) {
   api.postEvent('user1', encryptedEventA);
   
   // 4- User get his own data and decrypt it
-  const userEvents = api.getData('user1');
+  const userEvents = api.getEvents('user1');
   for (const event of userEvents) { // find a matching key 
     clog('user get encrypted>', event.content);
-    const keyId = Object.keys(event.content)[0];
+    decryptEvent(event, userKeys);
+  }
+  clog('user get decrypted>', userEvents);
+
+  
+  // 5- A target send a request to access user data 
+  const targetKeys = {};
+  // generate 
+  const targetKeyFromStreamA = lib.generateKeys('user1:streamA:0');
+  targetKeys[targetKeyFromStreamA.public.id] = targetKeyFromStreamA;
+
+  // 5.1 target communicates his public key to the user
+  const requestFromTargetToUser = { publicKey: targetKeyFromStreamA.public.publicKey, signPublicKey: targetKeyFromStreamA.public.signPublicKey };
+
+  // 5.2 user creates a transform key from his private key to the target public key for streamA
+  const userToTargetTransfromKeys = {};
+  for (const streamId of ['streamA']) {
+    const keyId = 'user1:' + streamId + ':0';
     const userKey = userKeys[keyId];
-    if (event.content[keyId].encryptedPassword) {
-      const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
-      Object.assign(event, decryptedData);
-    } else {
-      const decryptedData = lib.decryptWithPassword(event.content[keyId], lib.decryptPassword(userKey.public.encryptedPassword, userKey.privateKey));
-      Object.assign(event, decryptedData);
-    }
-    clog('user get decrypted>', event);
+    const userToTargetTransfromKey = lib.getTransformKey(userKey, requestFromTargetToUser.publicKey);
+    userToTargetTransfromKeys[keyId] = userToTargetTransfromKey;
   }
 
-  /** 
-  // 5- A target send a request to access user data 
-  const targetKeys = lib.generateKeys();
-  // 5.1 target communicates his public key to the user
-  const requestFromTargetToUser = { publicKey: targetKeys.publicKey, signPublicKey: targetKeys.signPublicKey };
-  // 5.2 user creates a transform key from his private key to the target public key
-  const userToTargetTransfromKey = lib.getTransformKey(userKeys, requestFromTargetToUser.publicKey);
   // 5.3 user register the target as an authorized recipient on the server
-  api.postRecipient('user1', 'target1', { transformKey: userToTargetTransfromKey, publicKeys: requestFromTargetToUser });
+  api.postRecipient('user1', 'target1', { transformKeys: userToTargetTransfromKeys, publicKeys: requestFromTargetToUser });
 
-  // 6- Target Get Data from the server
-  clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
+  // 6.1 - Target Get Streams from the server 
+  const streamsFromUser1ForTarget1 = api.getStreams('user1', 'target1');
+  clog('target getStreams>', streamsFromUser1ForTarget1);
 
+  
+  // 6.2 - Target Get Events from the server
+  $$(targetKeys);
+  const eventsForTarget = api.getEvents('user1', 'target1');
+  for (const event of eventsForTarget) { // find a matching key 
+    clog('target get encrypted>', event);
+    decryptEvent(event, targetKeys);
+  }
+  clog('target get decrypted>', eventsForTarget);
+
+  //clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
+
+  /**
   // 7- User sends encrypted data
   api.postData('user1', lib.encrypt('Encrypted from user', userKeys.publicKey, userKeys.signPrivateKey));
 
@@ -125,4 +143,17 @@ module.exports = function executeFlow(clog) {
   // 14- Target rotates his keys
   const newTargetKeys = lib.generateKeys();
   */
+}
+
+function decryptEvent(event, keys) {
+  if (event.type != 'encrypted/recrypt-aes-256-gcm-v1') return;
+  const keyId = Object.keys(event.content)[0];
+  const userKey = keys[keyId];
+  if (event.content[keyId].encryptedPassword) {
+    const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
+    Object.assign(event, decryptedData);
+  } else {
+    const decryptedData = lib.decryptWithPassword(event.content[keyId], lib.decryptPassword(userKey.public.encryptedPassword, userKey.privateKey));
+    Object.assign(event, decryptedData);
+  }
 }
