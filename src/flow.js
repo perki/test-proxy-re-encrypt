@@ -48,12 +48,12 @@ module.exports = function executeFlow(clog) {
   // 4- User get his own data and decrypt it
   const userEvents = api.getData('user1');
   for (const event of userEvents) { // find a matching key 
+    clog('user get encrypted>', event.content);
     const keyId = Object.keys(event.content)[0];
     const userKey = userKeys[keyId];
-    console.log(userKeys);
     const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
     Object.assign(event, decryptedData);
-    clog('user get>', event);
+    clog('user get decrypted>', event);
   }
 
   /** 

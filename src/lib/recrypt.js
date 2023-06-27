@@ -7,7 +7,7 @@ const aes256gcm = require('./aes-256-gcm');
 
 function encrypt(data, toPublicKey, fromSigningKey) {
   const password = get384Password();
-  const encryptedPassword = Api256.encrypt(password, stringToPublicKey(toPublicKey), stringToKey(fromSigningKey));
+  const encryptedPassword = encryptedPasswordToString(Api256.encrypt(password, stringToPublicKey(toPublicKey), stringToKey(fromSigningKey)));
   const encryptedData = aes256gcm.encrypt(data, password);
   const encrypted = {encryptedPassword, encryptedData};
   return encrypted;
@@ -38,7 +38,7 @@ function generateKeys(id) {
 }
 
 function decrypt(data, privateKey) {
-  const password = Api256.decrypt(data.encryptedPassword, stringToKey(privateKey));
+  const password = Api256.decrypt(stringToEncryptedPassword(data.encryptedPassword), stringToKey(privateKey));
   const decryptedData = aes256gcm.decrypt(data.encryptedData, password);
   return decryptedData;
 }
@@ -95,4 +95,29 @@ function stringToPublicKey(string) {
     x: Buffer.from(x, 'base64'),
     y: Buffer.from(y, 'base64'),
   }
+}
+
+function encryptedPasswordToString(data) {
+  const res = [
+    publicKeyToString(data.ephemeralPublicKey),
+    data.encryptedMessage.toString('base64'),
+    data.authHash.toString('base64'),
+    data.publicSigningKey.toString('base64'),
+    data.signature.toString('base64'),
+    data.transformBlocks.map((b) => b.toString('base64'))
+  ];
+  return JSON.stringify(res);
+}
+
+function stringToEncryptedPassword(string) {
+  const [ephemeralPublicKeyS, encryptedMessageS, authHashS, publicSigningKeyS, signatureS, transformBlocksS] = JSON.parse(string);
+  const res = {
+    ephemeralPublicKey: stringToPublicKey(ephemeralPublicKeyS),
+    encryptedMessage: Buffer.from(encryptedMessageS, 'base64'),
+    authHash: Buffer.from(authHashS, 'base64'),
+    publicSigningKey: Buffer.from(publicSigningKeyS, 'base64'),
+    signature: Buffer.from(signatureS, 'base64'),
+    transformBlocks: transformBlocksS.map((s) => Buffer.from(s, 'base64'))
+  }
+  return res;
 }
