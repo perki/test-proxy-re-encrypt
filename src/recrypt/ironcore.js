@@ -1,33 +1,33 @@
 let Api256 = null;
 
-function getTransformKey(userKeys, targetPublicKey) {
+const TYPE = 'ironcore-0';
+
+function getTransformKey(originPrivateKeys, targetPublicKey) {
   const transformKey = Api256.generateTransformKey(
-      stringToKey(userKeys.privateKey), 
+      stringToBuffer(originPrivateKeys.privateKey), 
       stringToPublicKey(targetPublicKey), 
-      stringToKey(userKeys.signPrivateKey));
+      stringToBuffer(originPrivateKeys.signPrivateKey));
   return transformKeyToString(transformKey);
 }
 
 function generateKeys(id) {
   const keys = Api256.generateKeyPair();
   const signKeys = Api256.generateEd25519KeyPair();
-  const password = getNewPassword();
-  const encryptedPassword = encryptedPasswordToString(Api256.encrypt(password, keys.publicKey, signKeys.privateKey));
   const key = {
-    privateKey: keyToString(keys.privateKey),
-    signPrivateKey: keyToString(signKeys.privateKey),
+    privateKey: bufferToString(keys.privateKey),
+    signPrivateKey: bufferToString(signKeys.privateKey),
     public : {
-      id: id || Math.random().toString(36).substring(2, 6),
+      type: TYPE,
+      id: id || Math.random().toString(36).substring(2),
       publicKey: publicKeyToString(keys.publicKey),
-      signPublicKey: keyToString(signKeys.publicKey),
-      encryptedPassword
+      signPublicKey: bufferToString(signKeys.publicKey)
     }
   }
   return key;
 }
 
 function decryptPassword(encryptedPassword, privateKey) {
-  const password = Api256.decrypt(stringToEncryptedPassword(encryptedPassword), stringToKey(privateKey));
+  const password = bufferToString(Api256.decrypt(stringToEncryptedPassword(encryptedPassword), stringToBuffer(privateKey)));
   return password;
 }
 
@@ -36,23 +36,23 @@ function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
   const transformedPassword = Api256.transform(
     stringToEncryptedPassword(encryptedPassword), 
     stringToTransformkey(transformKey), 
-    stringToKey(fromSigningKey));
+    stringToBuffer(fromSigningKey));
   return encryptedPasswordToString(transformedPassword);
 }
 
 
 function getNewPassword() {
-  return Api256.generatePlaintext();
+  return bufferToString(Api256.generatePlaintext());
 }
 
-function encryptPassword(password, publicKey, signingKey) {
-  const encryptedPassword = Api256.encrypt(password, stringToPublicKey(publicKey), stringToKey(signingKey));
+function encryptPassword(password, publicKey, signPrivateKey) {
+  const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(publicKey), stringToBuffer(signPrivateKey));
   return encryptedPasswordToString(encryptedPassword);
 }
 
 
 module.exports = {
-  type: 'ironcore-0',
+  type: TYPE,
   getNewPassword,
   encryptPassword,
   decryptPassword,
@@ -65,11 +65,11 @@ module.exports = {
   }
 }
 
-function keyToString(buffer) {
+function bufferToString(buffer) {
   return buffer.toString('base64');
 }
 
-function stringToKey(string) {
+function stringToBuffer(string) {
   return Buffer.from(string, 'base64');
 }
 
@@ -100,9 +100,9 @@ function encryptedPasswordToString(data) {
 function transformBlockToObjectOfStrings(transformBlock) {
   const res = {
     publicKey: publicKeyToString(transformBlock.publicKey),
-    encryptedTempKey: keyToString(transformBlock.encryptedTempKey),
+    encryptedTempKey: bufferToString(transformBlock.encryptedTempKey),
     randomTransformPublicKey: publicKeyToString(transformBlock.randomTransformPublicKey),
-    randomTransformEncryptedTempKey: keyToString(transformBlock.randomTransformEncryptedTempKey)
+    randomTransformEncryptedTempKey: bufferToString(transformBlock.randomTransformEncryptedTempKey)
   }
   return res;
 }
@@ -110,9 +110,9 @@ function transformBlockToObjectOfStrings(transformBlock) {
 function objectOfStringsToTransformBlock(transformBlockS) {
   const res = {
     publicKey: stringToPublicKey(transformBlockS.publicKey),
-    encryptedTempKey: stringToKey(transformBlockS.encryptedTempKey),
+    encryptedTempKey: stringToBuffer(transformBlockS.encryptedTempKey),
     randomTransformPublicKey: stringToPublicKey(transformBlockS.randomTransformPublicKey),
-    randomTransformEncryptedTempKey: stringToKey(transformBlockS.randomTransformEncryptedTempKey)
+    randomTransformEncryptedTempKey: stringToBuffer(transformBlockS.randomTransformEncryptedTempKey)
   }
   return res;
 }

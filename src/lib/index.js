@@ -72,11 +72,11 @@ module.exports = {
   transform: recrypt.transform,
 }
 
-function keyToString(buffer) {
+function bufferToString(buffer) {
   return buffer.toString('base64');
 }
 
-function stringToKey(string) {
+function stringToBuffer(string) {
   return Buffer.from(string, 'base64');
 }
 
@@ -107,9 +107,9 @@ function encryptedPasswordToString(data) {
 function transformBlockToObjectOfStrings(transformBlock) {
   const res = {
     publicKey: publicKeyToString(transformBlock.publicKey),
-    encryptedTempKey: keyToString(transformBlock.encryptedTempKey),
+    encryptedTempKey: bufferToString(transformBlock.encryptedTempKey),
     randomTransformPublicKey: publicKeyToString(transformBlock.randomTransformPublicKey),
-    randomTransformEncryptedTempKey: keyToString(transformBlock.randomTransformEncryptedTempKey)
+    randomTransformEncryptedTempKey: bufferToString(transformBlock.randomTransformEncryptedTempKey)
   }
   return res;
 }
@@ -117,9 +117,9 @@ function transformBlockToObjectOfStrings(transformBlock) {
 function objectOfStringsToTransformBlock(transformBlockS) {
   const res = {
     publicKey: stringToPublicKey(transformBlockS.publicKey),
-    encryptedTempKey: stringToKey(transformBlockS.encryptedTempKey),
+    encryptedTempKey: stringToBuffer(transformBlockS.encryptedTempKey),
     randomTransformPublicKey: stringToPublicKey(transformBlockS.randomTransformPublicKey),
-    randomTransformEncryptedTempKey: stringToKey(transformBlockS.randomTransformEncryptedTempKey)
+    randomTransformEncryptedTempKey: stringToBuffer(transformBlockS.randomTransformEncryptedTempKey)
   }
   return res;
 }
