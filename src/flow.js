@@ -99,7 +99,7 @@ module.exports = function executeFlow(clog) {
   }
   clog('target get decrypted>', eventsForTarget);
 
-  //clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
+  //clog('target get>', lib.decryptArrayWithKeys(api.getData('user1', 'target1'), targetKeys.privateKey));
 
   /**
   // 7- User sends encrypted data
@@ -109,10 +109,10 @@ module.exports = function executeFlow(clog) {
   api.postData('user1', lib.encrypt('Encrypted from target', api.getPublicKeys('user1').publicKey, targetKeys.signPrivateKey));
 
   // 9- User get his data
-  clog('user get>', lib.decryptArray(api.getData('user1'), userKeys.privateKey));
+  clog('user get>', lib.decryptArrayWithKeys(api.getData('user1'), userKeys.privateKey));
 
   // 10- Target get user's data
-  clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
+  clog('target get>', lib.decryptArrayWithKeys(api.getData('user1', 'target1'), targetKeys.privateKey));
 
   // 11- User rotates his keys
   const newUserKeys = lib.generateKeys();
@@ -135,10 +135,10 @@ module.exports = function executeFlow(clog) {
 
   
   // 12- User get his data
-  clog('user get>', lib.decryptArray(api.getData('user1'), newUserKeys.privateKey));
+  clog('user get>', lib.decryptArrayWithKeys(api.getData('user1'), newUserKeys.privateKey));
 
   // 13- Target get user's data
-  clog('target get>', lib.decryptArray(api.getData('user1', 'target1'), targetKeys.privateKey));
+  clog('target get>', lib.decryptArrayWithKeys(api.getData('user1', 'target1'), targetKeys.privateKey));
 
   // 14- Target rotates his keys
   const newTargetKeys = lib.generateKeys();
@@ -150,7 +150,7 @@ function decryptEvent(event, keys) {
   const keyId = Object.keys(event.content)[0];
   const userKey = keys[keyId];
   if (event.content[keyId].encryptedPassword) {
-    const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
+    const decryptedData = lib.decryptWithKeys(event.content[keyId], userKey.privateKey);
     Object.assign(event, decryptedData);
   } else {
     

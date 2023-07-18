@@ -32,14 +32,14 @@ class Access {
 
   getData() {
     const encryptedData = api.getData(this.userid, this.accessid);
-    const decryptedData = lib.decryptArray(encryptedData, this.keys.privateKey);
+    const decryptedData = lib.decryptArrayWithKeys(encryptedData, this.keys.privateKey);
     console.log(this.accessid + '>' + this.userid + '>', decryptedData);
     return decryptedData;
   }
 
   postData(data) {
     const userPublicKey = api.getPublicKeys(this.userid).publicKey;
-    const encryptedData = lib.encrypt('Encrypted ' + this.userid + '/' + this.accessid + '> ' + data, userPublicKey, this.keys.signPrivateKey)
+    const encryptedData = lib.encryptWithKeys('Encrypted ' + this.userid + '/' + this.accessid + '> ' + data, userPublicKey, this.keys.signPrivateKey)
     api.postData(this.userid, encryptedData);
   }
 }

@@ -25,7 +25,7 @@ class API {
     const toEncrypt = { type: event.type, content: event.content };
     for (const streamId of event.streamIds) { // Encrypt the data using streams signing key
       const keys = this.users[userId].streams[streamId].clientData.encryption['recrypt-aes-256-gcm-v1'];
-      const encryptedValue = lib.encrypt(toEncrypt, keys.publicKey, this.apiSignPrivateKey);
+      const encryptedValue = lib.encryptWithKeys(toEncrypt, keys.publicKey, this.apiSignPrivateKey);
       encryptedEvent.content[keys.id] = encryptedValue;
     }
     

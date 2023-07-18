@@ -2,7 +2,19 @@
 const envelope = require('../envelope')('aes-256-gcm-0');
 const recrypt = require('../recrypt')('ironcore-0');
 
-function encrypt(data, publicKey, signingKey) {
+/**
+ * @typedef {Object} EncryptedPayLoad
+ * @property {String} encryptedPassword - Password to decrypt the payload
+ * @property {String} encryptedData - The data
+ */
+
+/**
+ * @param {*} data // must be a String or Support JSON.stringify
+ * @param {string} publicKey 
+ * @param {string} signingKey 
+ * @returns {EncryptedPayLoad}
+ */
+function encryptWithKeys(data, publicKey, signingKey) {
   const password = recrypt.getNewPassword();
   const encryptedPassword = recrypt.encryptPassword(password, publicKey, signingKey);
   const encryptedData = envelope.encrypt(data, password);
@@ -10,8 +22,16 @@ function encrypt(data, publicKey, signingKey) {
   return encrypted;
 }
 
-
-function decrypt(data, privateKey) {
+/**
+ * Decrypt with the provided Key. 
+ * @param {EncryptedPayLoad} data 
+ * @param {string} privateKey 
+ * @returns 
+ */
+function decryptWithKeys(data, privateKey) {
+  if (data.encryptedPassword == null) {
+    throw new Error('Cannot decrypt data with private key, if payload does not contain encrypted password');
+  }
   const password = recrypt.decryptPassword(data.encryptedPassword, privateKey);
   const decryptedData = decryptWithPassword(data, password);
   return decryptedData;
@@ -23,10 +43,10 @@ function decryptWithPassword(data, password) {
   return decryptedData;
 }
 
-function decryptArray(encryptedArray, privateKey) {
+function decryptArrayWithKeys(encryptedArray, privateKey) {
   const res = [];
   for (const data of encryptedArray) {
-    res.push(decrypt(data, privateKey));
+    res.push(decryptWithKeys(data, privateKey));
   }
   return res;
 }
@@ -40,12 +60,12 @@ function encryptWithPassword(data, password ) {
 
 
 module.exports = {
-  encrypt,
+  encryptWithKeys,
   encryptWithPassword,
   decryptPassword: recrypt.decryptPassword,
-  decryptArray,
+  decryptArrayWithKeys,
   decryptWithPassword,
-  decrypt,
+  decryptWithKeys,
   generateKeys: recrypt.generateKeys,
   getTransformKey: recrypt.generateKeys,
   transformPassword: recrypt.transformPassword,
