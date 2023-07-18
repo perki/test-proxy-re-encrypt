@@ -1,4 +1,4 @@
-const ironcore = require('./recrypt')('ironcore-0');
+const ironcore = require('../src/recrypt')('ironcore-0');
 ironcore.init(require('@ironcorelabs/recrypt-node-binding'));
 
 const inspect = require('util').inspect;
@@ -15,5 +15,3 @@ function stack (start = 0, length = 100) {
 global.$$ = function logstack () {
   log(...arguments, stack(2, 4));
 }
-
-require('./flow')(log);
