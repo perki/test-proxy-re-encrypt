@@ -5,6 +5,9 @@
 const crypto = require('crypto');
 
 
+
+module.exports = { decrypt, encrypt , type: 'aes-256-gcm-0'};
+
 /**
  * Get encryption/decryption algorithm
  */
@@ -126,5 +129,3 @@ function decrypt(cipherText, password) {
       return void 0;
    }
 }
-
-module.exports = { decrypt, encrypt };

@@ -1,5 +1,5 @@
 
-const lib = require('./lib/recrypt');
+const lib = require('./lib');
 const API = require('./api');
 
 module.exports = function executeFlow(clog) {
@@ -153,7 +153,10 @@ function decryptEvent(event, keys) {
     const decryptedData = lib.decrypt(event.content[keyId], userKey.privateKey);
     Object.assign(event, decryptedData);
   } else {
-    const decryptedData = lib.decryptWithPassword(event.content[keyId], lib.decryptPassword(userKey.public.encryptedPassword, userKey.privateKey));
+    
+    const password = lib.decryptPassword(userKey.public.encryptedPassword, userKey.privateKey);
+    $$({eventContent: event.content[keyId], password});
+    const decryptedData = lib.decryptWithPassword(event.content[keyId], password);
     Object.assign(event, decryptedData);
   }
 }

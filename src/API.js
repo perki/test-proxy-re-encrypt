@@ -2,7 +2,7 @@
  * Mock an API
  */
 
-const lib = require('./lib/recrypt');
+const lib = require('./lib');
 
 class API {
   constructor () {

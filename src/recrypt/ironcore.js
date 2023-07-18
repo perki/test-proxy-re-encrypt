@@ -1,25 +1,4 @@
 let Api256 = null;
-let utf8decoder = new TextDecoder(); // default 'utf-8' or 'utf8'
-
-const ENCRYPTED_DATA_SIZE = 384;
-
-const aes256gcm = require('./aes-256-gcm');
-
-function encrypt(data, toPublicKey, fromSigningKey) {
-  const password = get384Password();
-  const encryptedPassword = encryptedPasswordToString(Api256.encrypt(password, stringToPublicKey(toPublicKey), stringToKey(fromSigningKey)));
-  const encryptedData = aes256gcm.encrypt(data, password);
-  const encrypted = {encryptedPassword, encryptedData};
-  return encrypted;
-}
-
-function encryptWithPassword(data, password ) {
-  const encryptedData = aes256gcm.encrypt(data, password);
-  const encrypted = { encryptedData };
-  return encrypted;
-}
-
-
 
 function getTransformKey(userKeys, targetPublicKey) {
   const transformKey = Api256.generateTransformKey(
@@ -32,7 +11,7 @@ function getTransformKey(userKeys, targetPublicKey) {
 function generateKeys(id) {
   const keys = Api256.generateKeyPair();
   const signKeys = Api256.generateEd25519KeyPair();
-  const password = get384Password();
+  const password = getNewPassword();
   const encryptedPassword = encryptedPasswordToString(Api256.encrypt(password, keys.publicKey, signKeys.privateKey));
   const key = {
     privateKey: keyToString(keys.privateKey),
@@ -52,24 +31,6 @@ function decryptPassword(encryptedPassword, privateKey) {
   return password;
 }
 
-function decrypt(data, privateKey) {
-  const password = decryptPassword(data.encryptedPassword, privateKey);
-  const decryptedData = decryptWithPassword(data, password);
-  return decryptedData;
-}
-
-function decryptWithPassword(data, password) {
-  const decryptedData = aes256gcm.decrypt(data.encryptedData, password);
-  return decryptedData;
-}
-
-function decryptArray(encryptedArray, privateKey) {
-  const res = [];
-  for (const data of encryptedArray) {
-    res.push(decrypt(data, privateKey));
-  }
-  return res;
-}
 
 function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
   const transformedPassword = Api256.transform(
@@ -79,30 +40,25 @@ function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
   return encryptedPasswordToString(transformedPassword);
 }
 
-function transform(data, toPublicKey, fromSigningKey) {
-  const transformed = {
-    encryptedPassword: Api256.transform(data, toPublicKey, fromSigningKey),
-    encryptedData: data.encryptedData
-  }
-  return transformed;
-}
 
-function get384Password() {
+function getNewPassword() {
   return Api256.generatePlaintext();
 }
 
+function encryptPassword(password, publicKey, signingKey) {
+  const encryptedPassword = Api256.encrypt(password, stringToPublicKey(publicKey), stringToKey(signingKey));
+  return encryptedPasswordToString(encryptedPassword);
+}
+
+
 module.exports = {
-  get384Password,
-  encrypt,
-  encryptWithPassword,
+  type: 'ironcore-0',
+  getNewPassword,
+  encryptPassword,
   decryptPassword,
-  decryptArray,
-  decryptWithPassword,
-  decrypt,
   generateKeys,
   getTransformKey,
   transformPassword,
-  transform,
   init: (Recrypt) => {
     //Create a new Recrypt API instance
     Api256 = new Recrypt.Api256();

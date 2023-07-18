@@ -1,6 +1,6 @@
 const { util } = require('webpack');
-const lib = require('./lib/recrypt');
-lib.init(require('@ironcorelabs/recrypt-node-binding'));
+const ironcore = require('./recrypt')('ironcore-0');
+ironcore.init(require('@ironcorelabs/recrypt-node-binding'));
 
 const inspect = require('util').inspect;
 function log() {
