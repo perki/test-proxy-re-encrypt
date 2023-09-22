@@ -28,6 +28,24 @@ describe('envelope', function () {
         const decrypted = enveloppe.decrypt(encrypted, password);
         assert.equal(myString, decrypted);
       });
+
+      it('Encrypt / Decrypt object', () => {
+        const password = getPassword();
+        const myData = {
+          string: 'Hello 😃 !',
+          int: 12, 
+          float: 0.12,
+          bool: true,
+          nested: {
+            array: ['a', 1, true]
+          }
+        };
+        const encrypted = enveloppe.encrypt(myData, password);
+        assert.isString(encrypted);
+        assert.isTrue(encrypted.startsWith(envelopeType + '::'), `Should start with ${envelopeType}::`);
+        const decrypted = enveloppe.decrypt(encrypted, password);
+        assert.deepEqual(myData, decrypted);
+      });
     });
   }
 });

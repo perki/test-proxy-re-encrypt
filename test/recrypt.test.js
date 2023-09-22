@@ -27,14 +27,14 @@ describe('recrypt', function () {
         assert.equal(recrypt.type, recryptType);
       });
 
-      it('Generate random password with getNewPassword', () => {
-        const password = recrypt.getNewPassword();
+      it('Generate random password with getNewPassword', async () => {
+        const password = await recrypt.getNewPassword();
         assert.isString(password);
       });
 
-      it('Generate Keys with provided keyId', () => {
+      it('Generate Keys with provided keyId', async () => {
         const keyId = 'myKeyId';
-        const key = recrypt.generateKeys(keyId);
+        const key = await recrypt.generateKeys(keyId);
         assert.isString(key.privateKey, 'privateKey should be a string');
         assert.isString(key.signPrivateKey, 'signPrivateKey should be a string');
         assert.isString(key.public.publicKey, 'publicKey should be a string');
@@ -43,34 +43,34 @@ describe('recrypt', function () {
         assert.equal(recryptType, key.public.type, 'Type is stored in public segment');
       });
 
-      it('Generate Ids when generateKeys does not provide one', () => {
-        const key = recrypt.generateKeys();
+      it('Generate Ids when generateKeys does not provide one', async () => {
+        const key = await recrypt.generateKeys();
         assert.isString(key.public.id, 'an id is auto assigned');
       });
 
-      it('Simple crypt / decrypt flow with single key', () => {
-        const password = recrypt.getNewPassword();
-        const key = recrypt.generateKeys();
-        const encryptedPassword = recrypt.encryptPassword(password, key.public.publicKey, key.signPrivateKey);
+      it('Simple crypt / decrypt flow with single key', async () => {
+        const password = await recrypt.getNewPassword();
+        const key = await recrypt.generateKeys();
+        const encryptedPassword = await recrypt.encryptPassword(password, key.public.publicKey, key.signPrivateKey);
         assert.isString(encryptedPassword);
-        const decryptedPassword = recrypt.decryptPassword(encryptedPassword, key.privateKey);
+        const decryptedPassword = await recrypt.decryptPassword(encryptedPassword, key.privateKey);
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
       });
 
-      it('Full crypt / transform / decrypt flow with two keys', () => {
-        const password = recrypt.getNewPassword();
-        const keyOrigin = recrypt.generateKeys();
-        const encryptedPassword = recrypt.encryptPassword(password, keyOrigin.public.publicKey, keyOrigin.signPrivateKey);
+      it('Full crypt / transform / decrypt flow with two keys', async () => {
+        const password = await recrypt.getNewPassword();
+        const keyOrigin = await recrypt.generateKeys();
+        const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin.public.publicKey, keyOrigin.signPrivateKey);
         
-        const keyRecipient = recrypt.generateKeys();
+        const keyRecipient = await recrypt.generateKeys();
 
-        const transformKeyOriginToRecipient = recrypt.getTransformKey(keyOrigin, keyRecipient.public.publicKey);
+        const transformKeyOriginToRecipient = await recrypt.getTransformKey(keyOrigin, keyRecipient.public.publicKey);
         assert.isString(transformKeyOriginToRecipient);
 
-        const proxyKeys = recrypt.generateKeys();
-        const encryptedPasswordForRecipient = recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys.signPrivateKey);
+        const proxyKeys = await recrypt.generateKeys();
+        const encryptedPasswordForRecipient = await recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys.signPrivateKey);
 
-        const decryptedPassword = recrypt.decryptPassword(encryptedPasswordForRecipient, keyRecipient.privateKey);
+        const decryptedPassword = await recrypt.decryptPassword(encryptedPasswordForRecipient, keyRecipient.privateKey);
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
       });
     });

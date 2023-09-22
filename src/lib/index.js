@@ -14,9 +14,9 @@ const recrypt = require('../recrypt')('ironcore-0');
  * @param {string} signingKey 
  * @returns {EncryptedPayLoad}
  */
-function encryptWithKeys(data, publicSet, signingKey) {
-  const password = recrypt.getNewPassword();
-  const encryptedPassword = recrypt.encryptPassword(password, publicSet.publicKey, signingKey);
+async function encryptWithKeys(data, publicSet, signingKey) {
+  const password = await recrypt.getNewPassword();
+  const encryptedPassword = await recrypt.encryptPassword(password, publicSet.publicKey, signingKey);
   const encryptedData = envelope.encrypt(data, password);
   const type = recrypt.type + ':' + envelope.type;
   const keyId = publicSet.id + ':' + type;
@@ -30,11 +30,11 @@ function encryptWithKeys(data, publicSet, signingKey) {
  * @param {string} privateKey 
  * @returns 
  */
-function decryptWithKeys(data, privateKey) {
+async function decryptWithKeys(data, privateKey) {
   if (data.encryptedPassword == null) {
     throw new Error('Cannot decrypt data with private key, if payload does not contain encrypted password');
   }
-  const password = recrypt.decryptPassword(data.encryptedPassword, privateKey);
+  const password = await recrypt.decryptPassword(data.encryptedPassword, privateKey);
   const decryptedData = decryptWithPassword(data, password);
   return decryptedData;
 }

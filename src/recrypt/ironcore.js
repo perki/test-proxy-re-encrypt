@@ -1,8 +1,9 @@
-let Api256 = null;
+const Recrypt = require('@ironcorelabs/recrypt-node-binding');
+const Api256 = new Recrypt.Api256();
 
 const TYPE = 'ironcore-0';
 
-function getTransformKey(originPrivateKeys, targetPublicKey) {
+async function getTransformKey(originPrivateKeys, targetPublicKey) {
   const transformKey = Api256.generateTransformKey(
       stringToBuffer(originPrivateKeys.privateKey), 
       stringToPublicKey(targetPublicKey), 
@@ -10,7 +11,7 @@ function getTransformKey(originPrivateKeys, targetPublicKey) {
   return transformKeyToString(transformKey);
 }
 
-function generateKeys(id) {
+async function generateKeys(id) {
   const keys = Api256.generateKeyPair();
   const signKeys = Api256.generateEd25519KeyPair();
   const key = {
@@ -26,13 +27,13 @@ function generateKeys(id) {
   return key;
 }
 
-function decryptPassword(encryptedPassword, privateKey) {
+async function decryptPassword(encryptedPassword, privateKey) {
   const password = bufferToString(Api256.decrypt(stringToEncryptedPassword(encryptedPassword), stringToBuffer(privateKey)));
   return password;
 }
 
 
-function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
+async function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
   const transformedPassword = Api256.transform(
     stringToEncryptedPassword(encryptedPassword), 
     stringToTransformkey(transformKey), 
@@ -41,11 +42,11 @@ function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
 }
 
 
-function getNewPassword() {
+async function getNewPassword() {
   return bufferToString(Api256.generatePlaintext());
 }
 
-function encryptPassword(password, publicKey, signPrivateKey) {
+async function encryptPassword(password, publicKey, signPrivateKey) {
   const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(publicKey), stringToBuffer(signPrivateKey));
   return encryptedPasswordToString(encryptedPassword);
 }
@@ -61,7 +62,7 @@ module.exports = {
   transformPassword,
   init: (Recrypt) => {
     //Create a new Recrypt API instance
-    Api256 = new Recrypt.Api256();
+    
   }
 }
 

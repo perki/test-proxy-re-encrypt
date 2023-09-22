@@ -1,5 +1,4 @@
-const ironcore = require('../src/recrypt')('ironcore-0');
-ironcore.init(require('@ironcorelabs/recrypt-node-binding'));
+
 
 const inspect = require('util').inspect;
 function log() {

@@ -5,7 +5,7 @@ const lib = require('../src/lib');
 
 describe('lib', () => {
 
-  it('Encrypt / Decrypt object', () => {
+  it('Encrypt / Decrypt object', async () => {
     const myData = {
       string: 'Hello 😃 !',
       int: 12, 
@@ -16,9 +16,9 @@ describe('lib', () => {
       }
     };
 
-    const originKeys = lib.generateKeys('origin');
-    const encrypted = lib.encryptWithKeys(myData, originKeys.public, originKeys.signPrivateKey);
-    const decryptedData = lib.decryptWithKeys(encrypted, originKeys.privateKey);
+    const originKeys = await lib.generateKeys('origin');
+    const encrypted = await lib.encryptWithKeys(myData, originKeys.public, originKeys.signPrivateKey);
+    const decryptedData = await lib.decryptWithKeys(encrypted, originKeys.privateKey);
     assert.deepEqual(myData, decryptedData);
   });
 });
