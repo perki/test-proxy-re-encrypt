@@ -57,9 +57,6 @@ describe('recrypt', function () {
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
       });
 
-
-      
-
       it('Full crypt / transform / decrypt flow with two keys', () => {
         const password = recrypt.getNewPassword();
         const keyOrigin = recrypt.generateKeys();
@@ -70,13 +67,12 @@ describe('recrypt', function () {
         const transformKeyOriginToRecipient = recrypt.getTransformKey(keyOrigin, keyRecipient.public.publicKey);
         assert.isString(transformKeyOriginToRecipient);
 
-        const transformerKeys = recrypt.generateKeys();
-        const encryptedPasswordForRecipient = recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, transformerKeys.signPrivateKey);
+        const proxyKeys = recrypt.generateKeys();
+        const encryptedPasswordForRecipient = recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys.signPrivateKey);
 
         const decryptedPassword = recrypt.decryptPassword(encryptedPasswordForRecipient, keyRecipient.privateKey);
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
       });
-
     });
   }
 });

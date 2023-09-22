@@ -5,20 +5,20 @@
 const crypto = require('crypto');
 
 
-module.exports = { decrypt, encrypt , type: 'aes-256-gcm-0'};
+module.exports = { decrypt, encrypt , type: 'aes-192-0'};
 
 /**
  * Get encryption/decryption algorithm
  */
 function getAlgorithm() {
-   return 'aes-256-gcm';
+   return 'aes192';
 }
 
 /**
  * Get encrypted string prefix
  */
 function getEncryptedPrefix() {
-   return getAlgorithm() + '-0::';
+   return 'aes-192-0::';
 }
 
 /**
@@ -28,7 +28,7 @@ function getEncryptedPrefix() {
  * @param iterations
  */
 function deriveKeyFromPassword(password, salt, iterations) {
-   return crypto.pbkdf2Sync(password, salt, iterations, 32, 'sha512');
+   return crypto.pbkdf2Sync(password, salt, iterations, 24, 'sha512');
 }
 
 /**
@@ -65,11 +65,8 @@ function encrypt(dataToEncrypt, password) {
       // Update the cipher with data to be encrypted and close cipher
       const encryptedData = Buffer.concat([cipher.update(dataToEncrypt, 'utf8'), cipher.final()]);
 
-      // Get authTag from cipher for decryption // 16 bytes
-      const authTag = cipher.getAuthTag();
-
       // Join all data into single string, include requirements for decryption
-      const output = Buffer.concat([salt, iv, authTag, Buffer.from(iterations.toString()), encryptedData]).toString('hex');
+      const output = Buffer.concat([salt, iv, Buffer.from(iterations.toString()), encryptedData]).toString('hex');
 
       return getEncryptedPrefix() + output;
    } catch (error) {
@@ -103,16 +100,14 @@ function decrypt(cipherText, password) {
       // Split cipherText into partials
       const salt = inputData.subarray(0, 64);
       const iv = inputData.subarray(64, 80);
-      const authTag = inputData.subarray(80, 96);
-      const iterations = parseInt(inputData.subarray(96, 101).toString('utf-8'), 10);
-      const encryptedData = inputData.subarray(101);
+      const iterations = parseInt(inputData.subarray(80, 85).toString('utf-8'), 10);
+      const encryptedData = inputData.subarray(85);
 
       // Derive key
       const decryptionKey = deriveKeyFromPassword(password, salt, Math.floor(iterations * 0.47 + 1337));
 
       // Create decipher
       const decipher = crypto.createDecipheriv(algorithm, decryptionKey, iv);
-      decipher.setAuthTag(authTag);
 
       // Decrypt data
       const decrypted = decipher.update(encryptedData, 'binary', 'utf-8') + decipher.final('utf-8');

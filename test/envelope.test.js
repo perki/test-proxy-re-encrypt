@@ -7,7 +7,7 @@ function getPassword() {
 }
 
 // list all envelope types to use
-const envelopeTypes = ['aes-256-gcm-0'];
+const envelopeTypes = ['aes-256-gcm-0', 'aes-192-0'];
 
 describe('envelope', function () {
   for (const envelopeType of envelopeTypes) {
@@ -24,7 +24,7 @@ describe('envelope', function () {
         const myString = 'love "❤️" 😁';
         const encrypted = enveloppe.encrypt(myString, password);
         assert.isString(encrypted);
-        assert.isTrue(encrypted.startsWith('enc::'), 'Should start with enc::');
+        assert.isTrue(encrypted.startsWith(envelopeType + '::'), `Should start with ${envelopeType}::`);
         const decrypted = enveloppe.decrypt(encrypted, password);
         assert.equal(myString, decrypted);
       });
