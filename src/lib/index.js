@@ -16,7 +16,7 @@ const recrypt = require('../recrypt')('ironcore-0');
  */
 async function encryptWithKeys(data, publicSet, signingKey) {
   const password = await recrypt.getNewPassword();
-  const encryptedPassword = await recrypt.encryptPassword(password, publicSet.publicKey, signingKey);
+  const encryptedPassword = await recrypt.encryptPassword(password, publicSet, signingKey);
   const encryptedData = envelope.encrypt(data, password);
   const type = recrypt.type + ':' + envelope.type;
   const keyId = publicSet.id + ':' + type;
@@ -61,4 +61,5 @@ module.exports = {
   getTransformKey: recrypt.generateKeys,
   transformPassword: recrypt.transformPassword,
   transform: recrypt.transform,
+  init: recrypt.init,
 }

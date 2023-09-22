@@ -5,7 +5,7 @@ const { assert } = require('chai');
 const recryptLibrary = require('../src/recrypt');
 
 // list supported recrypt methods
-const recryptTypes = ['ironcore-0'];
+const recryptTypes = ['ironcore-0', 'aldenml-ecc-0'];
 
 describe('recrypt', function () {
 
@@ -22,6 +22,10 @@ describe('recrypt', function () {
   for (const recryptType of recryptTypes) {
     describe(`implementation ${recryptType}`, function () {
       let recrypt = recryptLibrary(recryptType);
+
+      before(async () => {
+        await recrypt.init();
+      });
 
       it('Has correct type code', () => {
         assert.equal(recrypt.type, recryptType);
@@ -51,7 +55,7 @@ describe('recrypt', function () {
       it('Simple crypt / decrypt flow with single key', async () => {
         const password = await recrypt.getNewPassword();
         const key = await recrypt.generateKeys();
-        const encryptedPassword = await recrypt.encryptPassword(password, key.public.publicKey, key.signPrivateKey);
+        const encryptedPassword = await recrypt.encryptPassword(password, key.public, key.signPrivateKey);
         assert.isString(encryptedPassword);
         const decryptedPassword = await recrypt.decryptPassword(encryptedPassword, key.privateKey);
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
@@ -60,7 +64,7 @@ describe('recrypt', function () {
       it('Full crypt / transform / decrypt flow with two keys', async () => {
         const password = await recrypt.getNewPassword();
         const keyOrigin = await recrypt.generateKeys();
-        const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin.public.publicKey, keyOrigin.signPrivateKey);
+        const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin.public, keyOrigin.signPrivateKey);
         
         const keyRecipient = await recrypt.generateKeys();
 

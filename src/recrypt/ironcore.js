@@ -3,11 +3,11 @@ const Api256 = new Recrypt.Api256();
 
 const TYPE = 'ironcore-0';
 
-async function getTransformKey(originPrivateKeys, targetPublicKey) {
+async function getTransformKey(originKeys, targetPublicKey) {
   const transformKey = Api256.generateTransformKey(
-      stringToBuffer(originPrivateKeys.privateKey), 
+      stringToBuffer(originKeys.privateKey), 
       stringToPublicKey(targetPublicKey), 
-      stringToBuffer(originPrivateKeys.signPrivateKey));
+      stringToBuffer(originKeys.signPrivateKey));
   return transformKeyToString(transformKey);
 }
 
@@ -46,8 +46,8 @@ async function getNewPassword() {
   return bufferToString(Api256.generatePlaintext());
 }
 
-async function encryptPassword(password, publicKey, signPrivateKey) {
-  const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(publicKey), stringToBuffer(signPrivateKey));
+async function encryptPassword(password, publicKeySet, signPrivateKey) {
+  const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(publicKeySet.publicKey), stringToBuffer(signPrivateKey));
   return encryptedPasswordToString(encryptedPassword);
 }
 
@@ -60,10 +60,7 @@ module.exports = {
   generateKeys,
   getTransformKey,
   transformPassword,
-  init: (Recrypt) => {
-    //Create a new Recrypt API instance
-    
-  }
+  init: async () => { }
 }
 
 function bufferToString(buffer) {
