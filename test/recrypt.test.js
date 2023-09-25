@@ -2,16 +2,14 @@ require('./helpers');
 
 const { assert } = require('chai');
 
-const recryptLibrary = require('../src/recrypt');
+const recrypts = require('../src/recrypt');
 
-// list supported recrypt methods
-const recryptTypes = ['ironcore-0', 'aldenml-ecc-0'];
 
 describe('recrypt', function () {
 
   it('Throw error on unsupported implementation', () => {
     try {
-      recryptLibrary('unsupported');
+      recrypts.get('unsupported');
       throw new Error('Should throw an error');
     } catch (e) {
       assert.equal(e.message, 'Unsuported recrypt method :unsupported');
@@ -19,9 +17,9 @@ describe('recrypt', function () {
     
   });
 
-  for (const recryptType of recryptTypes) {
+  for (const recryptType of recrypts.list()) {
     describe(`implementation ${recryptType}`, function () {
-      let recrypt = recryptLibrary(recryptType);
+      let recrypt = recrypts.get(recryptType);
 
       before(async () => {
         await recrypt.init();

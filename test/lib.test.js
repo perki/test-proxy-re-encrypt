@@ -5,10 +5,6 @@ const lib = require('../src/lib');
 
 describe('lib', () => {
 
-  before(async () => {
-    await lib.init();
-  });
-
   it('Encrypt / Decrypt object', async () => {
     const myData = {
       string: 'Hello 😃 !',

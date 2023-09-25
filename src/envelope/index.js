@@ -6,9 +6,17 @@ const envelopes = {
   [aes192.type]: aes192
 }
 
-module.exports = envelope;
+module.exports = {
+  get,
+  list
+}
+  
 
-function envelope(type) {
+function list() {
+  return Object.keys(envelopes);
+}
+
+function get(type) {
   const res = envelopes[type];
   if (res == null) throw new Error('Unsuported envelope method :' + type);
   return res;

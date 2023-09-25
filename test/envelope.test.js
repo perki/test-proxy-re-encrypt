@@ -1,4 +1,5 @@
 require('./helpers');
+const envelopes = require('../src/envelope');
 
 const { assert } = require('chai');
 
@@ -6,14 +7,12 @@ function getPassword() {
   return Math.random().toString(36).substring(2);
 }
 
-// list all envelope types to use
-const envelopeTypes = ['aes-256-gcm-0', 'aes-192-0'];
 
 describe('envelope', function () {
-  for (const envelopeType of envelopeTypes) {
+  for (const envelopeType of envelopes.list()) {
 
     describe(`implementation ${envelopeType}`, function () {
-      let enveloppe = require('../src/envelope')(envelopeType);
+      let enveloppe = envelopes.get(envelopeType);
 
       it('Has correct type code', () => {
         assert.equal(enveloppe.type, envelopeType);
