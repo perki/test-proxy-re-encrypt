@@ -7,12 +7,12 @@ const defaults = {
   recrypt: recrypts.list()[0]
 }
 
-function getEnvelope(use = {}) {
-  return envelopes.get(use.envelope || defaults.envelope);
+function getEnvelope(envelopeId) {
+  return envelopes.get(envelopeId || defaults.envelope);
 }
 
-async function getRecrypt(use = {}) {
-  const recrypt = recrypts.get(use.recrypt || defaults.recrypt);
+async function getRecrypt(recryptId) {
+  const recrypt = recrypts.get(recryptId || defaults.recrypt);
   await recrypt.init();
   return recrypt;
 }
@@ -30,9 +30,13 @@ async function getRecrypt(use = {}) {
  * @param {string} signingKey 
  * @returns {EncryptedPayLoad}
  */
-async function encryptWithKeys(data, keySet, use) {
-  const recrypt = await getRecrypt(use);
-  const envelope = getEnvelope(use);
+async function encryptWithKeys(data, keySet, use = {}) {
+  if (use.recrypt && keySet.public.type !== use.recrypt) {
+    throw new Error(`Cannot use recryptType: ${use.recrypt} with this key of type: ${keySet.public.type}`);
+  }
+
+  const recrypt = await getRecrypt(keySet.public.type);
+  const envelope = getEnvelope(use.envelope);
 
   const password = await recrypt.getNewPassword();
   const encryptedPassword = await recrypt.encryptPassword(password, keySet);
@@ -58,11 +62,6 @@ async function decryptWithKeys(data, privateKey) {
   const password = await recrypt.decryptPassword(data.encryptedPassword, privateKey);
   const decryptedData = decryptWithPassword(data, password);
   return decryptedData;
-}
-
-function useFromKeyId(key) {
-  const [id, recrypt, envelope] = key.split(':');
-  return {id, recrypt, envelope};
 }
 
 function decryptWithPassword(data, password) {
@@ -100,7 +99,10 @@ async function transformPassword(encryptedPassword, transformKey, proxyKeySet) {
   // : recrypt.transformPassword
 }
 
-
+function useFromKeyId(key) {
+  const [id, recrypt, envelope] = key.split(':');
+  return {id, recrypt, envelope};
+}
 
 module.exports = {
   encryptWithKeys,
@@ -111,4 +113,7 @@ module.exports = {
   generateKeys,
   getTransformKey,
   transformPassword,
+  defaults,
+  envelopeTypes: envelopes.list(),
+  recryptTypes: recrypts.list()
 }
