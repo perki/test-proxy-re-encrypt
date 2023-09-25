@@ -27,23 +27,24 @@ async function generateKeys(id) {
   const keys = await ecc.pre_schema1_KeyGen();
   const signing = await ecc.pre_schema1_SigningKeyGen();
   const key = {
-    privateKey: uintArrayToString(keys.pk),
+    privateKey: uintArrayToString(keys.sk),
     signPrivateKey: uintArrayToString(signing.ssk),
     public : {
       type: TYPE,
       id: id || Math.random().toString(36).substring(2),
-      publicKey: uintArrayToString(keys.sk),
+      publicKey: uintArrayToString(keys.pk),
       signPublicKey: uintArrayToString(signing.spk)
     }
   }
   return key;
 }
 
-async function encryptPassword(password, publicKeySet, signPrivateKey) {
-  $$({password, publicKeySet, signPrivateKey})
-  const encryptedPassword = await ecc.pre_schema1_Encrypt(stringToUintArray(password), stringToUintArray(publicKeySet.publicKey), {ssk: stringToUintArray(signPrivateKey)});
+async function encryptPassword(password, keySet) {
+  const encryptedPassword = await ecc.pre_schema1_Encrypt(stringToUintArray(password), stringToUintArray(keySet.public.publicKey), {spk: stringToUintArray(keySet.public.signPublicKey), ssk: stringToUintArray(keySet.signPrivateKey)});
   const pack = [
-    uintArrayToString(encryptedPassword)
+    uintArrayToString(encryptedPassword),
+    keySet.public.signPublicKey,
+    1
   ];
   return JSON.stringify(pack);
 }
@@ -52,7 +53,7 @@ async function getTransformKey(originKeys, targetPublicKey) {
   const reEncKey = await ecc.pre_schema1_ReKeyGen(
     stringToUintArray(originKeys.privateKey), 
     stringToUintArray(targetPublicKey), 
-    {ssk: stringToUintArray(originKeys.signPrivateKey)});
+    {ssk: stringToUintArray(originKeys.signPrivateKey), spk: stringToUintArray(originKeys.public.signPublicKey)});
    const pack = [
     uintArrayToString(reEncKey),
     originKeys.public.signPublicKey,
@@ -61,42 +62,41 @@ async function getTransformKey(originKeys, targetPublicKey) {
   return JSON.stringify(pack);
 }
 
-async function transformPassword(encryptedPassword, transformKey, proxySigninKey) {
+async function transformPassword(encryptedPassword, transformKey, proxyKeys) {
   const [reEncKey, originKeySignPublicKey, targetPublicKey] = JSON.parse(transformKey);
-  const [encryptedPasswordItem, signPublicKey] = JSON.parse(encryptedPassword);
-  if (signPublicKey != null) { throw new Error('Cannot Transform level 2 passwords'); }
+  const [encryptedPasswordItem, signPublicKey, level] = JSON.parse(encryptedPassword);
+  if (level !== 1) { throw new Error('Cannot Transform level 2 passwords'); }
   const transformedPassword = await ecc.pre_schema1_ReEncrypt(
     stringToUintArray(encryptedPasswordItem), 
     stringToUintArray(reEncKey), 
     stringToUintArray(originKeySignPublicKey),
     stringToUintArray(targetPublicKey),
-    stringToUintArray(proxySigninKey));
+    {spk: stringToUintArray(proxyKeys.public.signPublicKey), ssk: stringToUintArray(proxyKeys.signPrivateKey)});
 
-  $$({transformedPassword});
   const pack = [
     uintArrayToString(transformedPassword),
-    proxySigninKey
+    proxyKeys.public.signPublicKey,
+    2
   ]
   return JSON.stringify(pack);
 }
 
 async function decryptPassword(encryptedPassword, readerKeys) {
-  const [encryptedPasswordItem, proxySigningPublicKey] = JSON.parse(encryptedPassword);
-  $$({encryptedPasswordItem, proxySigningPublicKey, readerKeys});
-  if (proxySigningPublicKey == null) { // level 1
+  const [encryptedPasswordItem, signingPublicKey, level] = JSON.parse(encryptedPassword);
+  if (level === 1) { // level 1 (self decrypt)
     const password = await ecc.pre_schema1_DecryptLevel1(
       stringToUintArray(encryptedPasswordItem),
-      stringToUintArray(readerKeys)
+      stringToUintArray(readerKeys),
+      stringToUintArray(signingPublicKey)
     );
-    $$({password});
     return uintArrayToString(password);
   }  
   
   // level 2  
   const password = await ecc.pre_schema1_DecryptLevel2(
       stringToUintArray(encryptedPasswordItem),
-      stringToUintArray(readerKeys.privateKey),
-      stringToUintArray(proxySigningPublicKey)
+      stringToUintArray(readerKeys),
+      stringToUintArray(signingPublicKey)
     );
   return uintArrayToString(password);
 }

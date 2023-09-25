@@ -55,7 +55,7 @@ describe('recrypt', function () {
       it('Simple crypt / decrypt flow with single key', async () => {
         const password = await recrypt.getNewPassword();
         const key = await recrypt.generateKeys();
-        const encryptedPassword = await recrypt.encryptPassword(password, key.public, key.signPrivateKey);
+        const encryptedPassword = await recrypt.encryptPassword(password, key);
         assert.isString(encryptedPassword);
         const decryptedPassword = await recrypt.decryptPassword(encryptedPassword, key.privateKey);
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
@@ -64,7 +64,7 @@ describe('recrypt', function () {
       it('Full crypt / transform / decrypt flow with two keys', async () => {
         const password = await recrypt.getNewPassword();
         const keyOrigin = await recrypt.generateKeys();
-        const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin.public, keyOrigin.signPrivateKey);
+        const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin);
         
         const keyRecipient = await recrypt.generateKeys();
 
@@ -72,7 +72,7 @@ describe('recrypt', function () {
         assert.isString(transformKeyOriginToRecipient);
 
         const proxyKeys = await recrypt.generateKeys();
-        const encryptedPasswordForRecipient = await recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys.signPrivateKey);
+        const encryptedPasswordForRecipient = await recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys);
 
         const decryptedPassword = await recrypt.decryptPassword(encryptedPasswordForRecipient, keyRecipient.privateKey);
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');

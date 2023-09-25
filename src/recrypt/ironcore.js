@@ -33,11 +33,11 @@ async function decryptPassword(encryptedPassword, privateKey) {
 }
 
 
-async function transformPassword(encryptedPassword, transformKey, fromSigningKey) {
+async function transformPassword(encryptedPassword, transformKey, proxyKeySet) {
   const transformedPassword = Api256.transform(
     stringToEncryptedPassword(encryptedPassword), 
     stringToTransformkey(transformKey), 
-    stringToBuffer(fromSigningKey));
+    stringToBuffer(proxyKeySet.signPrivateKey));
   return encryptedPasswordToString(transformedPassword);
 }
 
@@ -46,8 +46,8 @@ async function getNewPassword() {
   return bufferToString(Api256.generatePlaintext());
 }
 
-async function encryptPassword(password, publicKeySet, signPrivateKey) {
-  const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(publicKeySet.publicKey), stringToBuffer(signPrivateKey));
+async function encryptPassword(password, keySet) {
+  const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(keySet.public.publicKey), stringToBuffer(keySet.signPrivateKey));
   return encryptedPasswordToString(encryptedPassword);
 }
 

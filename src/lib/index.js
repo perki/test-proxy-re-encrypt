@@ -14,12 +14,12 @@ const recrypt = require('../recrypt')('ironcore-0');
  * @param {string} signingKey 
  * @returns {EncryptedPayLoad}
  */
-async function encryptWithKeys(data, publicSet, signingKey) {
+async function encryptWithKeys(data, keySet) {
   const password = await recrypt.getNewPassword();
-  const encryptedPassword = await recrypt.encryptPassword(password, publicSet, signingKey);
+  const encryptedPassword = await recrypt.encryptPassword(password, keySet);
   const encryptedData = envelope.encrypt(data, password);
   const type = recrypt.type + ':' + envelope.type;
-  const keyId = publicSet.id + ':' + type;
+  const keyId = keySet.public.id + ':' + type;
   const encrypted = {keyId, encryptedPassword, encryptedData};
   return encrypted;
 }

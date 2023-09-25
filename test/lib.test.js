@@ -21,7 +21,7 @@ describe('lib', () => {
     };
 
     const originKeys = await lib.generateKeys('origin');
-    const encrypted = await lib.encryptWithKeys(myData, originKeys.public, originKeys.signPrivateKey);
+    const encrypted = await lib.encryptWithKeys(myData, originKeys);
     const decryptedData = await lib.decryptWithKeys(encrypted, originKeys.privateKey);
     assert.deepEqual(myData, decryptedData);
   });
