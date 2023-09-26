@@ -26,8 +26,8 @@ async function getRecrypt(recryptId) {
 
 /**
  * @param {*} data // must be a String or Support JSON.stringify
- * @param {string} publicSet 
- * @param {string} signingKey 
+ * @param {*} keySet 
+ * @param {*} use 
  * @returns {EncryptedPayLoad}
  */
 async function encryptWithKeys(data, keySet, use = {}) {
@@ -45,6 +45,29 @@ async function encryptWithKeys(data, keySet, use = {}) {
   const keyId = keySet.public.id + ':' + type;
   const encrypted = {keyId, encryptedPassword, encryptedData};
   return encrypted;
+}
+
+/**
+ * @param {EncryptedPayLoad} encrypted
+ * @param {*} keySet 
+ * @param {*} use 
+ * @returns {EncryptedPayLoad}
+ */
+async function recryptForKeys(encrypted, transformKey, proxyKeySet) {
+  const use = useFromKeyId(encrypted.keyId);
+  if (use.id != transformKey.fromId) {
+    throw new Error(`Cannot recrypt content encrypted from  ${use.id} using a transform Key from ${transformKey.fromId}`)
+  }
+
+  const recrypt = await getRecrypt(use.recrypt);
+  const transformedPassword = await recrypt.transformPassword(
+    encrypted.encryptedPassword,
+    transformKey.key,
+    proxyKeySet);
+  const recrypted = Object.assign({}, encrypted); // we can safely clone with Object.assign as long atheer is no nested properties
+  recrypted.keyId = transformKey.toId + ':' + use.recrypt + ':' + use.envelope,
+  recrypted.encryptedPassword = transformedPassword;
+  return recrypted;
 }
 
 /**
@@ -88,10 +111,18 @@ async function generateKeys(id, use = {}) {
   return recrypt.generateKeys(id);
 }
 
-async function getTransformKey(originKeys, targetPublicKey) {
-  $$({originKeys});
-  const recrypt = await getRecrypt(use.recrypt);
-  return recrypt.generateKeys(originKeys, targetPublicKey);
+async function getTransformKey(originKeys, targetPublicKeySet) {
+  if (originKeys.public.type != targetPublicKeySet.type) {
+    throw new Error(`Mismatching types for transmform get origin: ${originKeys.public.type}, target: ${targetPublicKeySet.type}`)
+  }
+  const recrypt = await getRecrypt(originKeys.public.type);
+  const key = await recrypt.getTransformKey(originKeys, targetPublicKeySet.publicKey);
+  return {
+    fromId: originKeys.public.id,
+    toId: targetPublicKeySet.id,
+    type: originKeys.public.type,
+    key
+  }
 }
 
 async function transformPassword(encryptedPassword, transformKey, proxyKeySet) {
@@ -113,6 +144,7 @@ module.exports = {
   generateKeys,
   getTransformKey,
   transformPassword,
+  recryptForKeys,
   defaults,
   envelopeTypes: envelopes.list(),
   recryptTypes: recrypts.list()

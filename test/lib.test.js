@@ -11,18 +11,17 @@ for (const recryptType of lib.recryptTypes) {
       recrypt: recryptType
     }
     describe(`lib recrypt: ${recryptType}, envelope: ${envelopeType}`, () => {
+      const myData = {
+        string: 'Hello 😃 !',
+        int: 12, 
+        float: 0.12,
+        bool: true,
+        nested: {
+          array: ['a', 1, true]
+        }
+      };
 
       it('Encrypt / Decrypt object', async () => {
-        const myData = {
-          string: 'Hello 😃 !',
-          int: 12, 
-          float: 0.12,
-          bool: true,
-          nested: {
-            array: ['a', 1, true]
-          }
-        };
-
         const originKeys = await lib.generateKeys('origin', use);
         const encrypted = await lib.encryptWithKeys(myData, originKeys, use);
         const infos = infoFromKeyId(encrypted.keyId);
@@ -32,6 +31,27 @@ for (const recryptType of lib.recryptTypes) {
         const decryptedData = await lib.decryptWithKeys(encrypted, originKeys.privateKey);
         assert.deepEqual(myData, decryptedData);
       });
+    
+
+      it('Encrypt / Recrypt / Decrypt', async () => {
+        const originKeys = await lib.generateKeys('origin', use);
+        const proxyKeys = await lib.generateKeys('proxy', use);
+        const recipientKeys = await lib.generateKeys('recipient', use);
+
+        const encrypted = await lib.encryptWithKeys(myData, originKeys, use);
+
+        // Origin generate transform Key
+        const transformKeyOriginToRecipient = await lib.getTransformKey(originKeys, recipientKeys.public);
+ 
+        // Proxy transform encrypted Data
+        const recrypted = await lib.recryptForKeys(encrypted, transformKeyOriginToRecipient, proxyKeys);
+
+        // Recipient decrypt data 
+        const decryptedData = await lib.decryptWithKeys(recrypted, recipientKeys.privateKey);
+
+        assert.deepEqual(myData, decryptedData);
+      });
+
     });
   }
 }
