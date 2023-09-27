@@ -13,50 +13,47 @@ async function main() {
   // proxy server setup signing keys
   const signingProxy = await ecc.pre_schema1_SigningKeyGen();
 
-  // client A select a plaintext message, this message
-  // in itself is random, but can be used as a seed
-  // for symmetric encryption keys
+  // client C is the origin encrypting party
+  const signingC = await ecc.pre_schema1_SigningKeyGen();
+
+  // client C select a plaintext message
   const message = await ecc.pre_schema1_MessageGen();
   const messageS = uintArrayToString(message);
-  const publicKeyAS = uintArrayToString(keysA.pk);
-  const signingSecretKeyA = uintArrayToString(signingA.ssk);
-  const signingPublicKeyA = uintArrayToString(signingA.spk);
 
-  // client A encrypts the message to itself, making it
-  // possible to send this ciphertext to the proxy.
+  // client C encrypts the message with A key
   const ciphertextLevel1 = await ecc.pre_schema1_Encrypt(
-    stringToUintArray(messageS),
-    stringToUintArray(publicKeyAS),
-    { spk: stringToUintArray(signingPublicKeyA), ssk: stringToUintArray(signingSecretKeyA) });
+    message,
+    keysA.pk,
+    signingC);
 
-  // client B is able to decrypt ciphertextLevel2 and the result
-  // is the original plaintext message
+  // client A is able to decrypt ciphertextLevel1 
   const messageDecrypted1 = await ecc.pre_schema1_DecryptLevel1(
     ciphertextLevel1,
     keysA.sk,
-    signingA.spk
+    signingC.spk
   );
 
   console.log(' Message decrypted == message ', (messageS == uintArrayToString(messageDecrypted1)));
 
-  // client A sends ciphertextLevel1 to the proxy server and
-  // eventually client A allows client B to see the encrypted
-  // message, in this case the proxy needs to re-encrypt
-  // ciphertextLevel1 (without ever knowing the plaintext).
-  // In order to do that, the client A needs to create a re-encryption
-  // key that the proxy can use to perform such operation.
+  
+  // client A allows client B to see the encrypted
 
   // client A creates a re-encryption key that the proxy can use
   // to re-encrypt the ciphertext (ciphertextLevel1) in order for
   // client B be able to recover the original message
-  const reEncKey = await ecc.pre_schema1_ReKeyGen(keysA.sk, keysB.pk, signingA);
+  const reEncKey = await ecc.pre_schema1_ReKeyGen(
+    keysA.sk, 
+    keysB.pk, 
+    signingC // ⚠️ HERE I WOULD LIKE TO AVOID USING `C` signing Key
+  );
 
   // the proxy re-encrypt the ciphertext ciphertextLevel1 with such
   // a key that allows client B to recover the original message
   const ciphertextLevel2 = await ecc.pre_schema1_ReEncrypt(
     ciphertextLevel1,
     reEncKey,
-    signingA.spk, keysB.pk,
+    signingC.spk, // ⚠️ HERE I WOULD LIKE TO AVOID USING `C` signing Key
+    keysB.pk, 
     signingProxy
   );
 
@@ -82,7 +79,6 @@ function uintArrayToString(u8) {
 function stringToUintArray(b64) {
   return new Uint8Array(Buffer.from(b64, 'base64'))
 }
-
 
 (async () => {
   ecc = await import('@aldenml/ecc');

@@ -53,7 +53,7 @@ describe('recrypt', function () {
       it('Simple crypt / decrypt flow with single key', async () => {
         const password = await recrypt.getNewPassword();
         const key = await recrypt.generateKeys();
-        const encryptedPassword = await recrypt.encryptPassword(password, key);
+        const encryptedPassword = await recrypt.encryptPassword(password, key, key.public.publicKey);
         assert.isString(encryptedPassword);
         const decryptedPassword = await recrypt.decryptPassword(encryptedPassword, key.privateKey);
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
@@ -62,7 +62,7 @@ describe('recrypt', function () {
       it('Full crypt / transform / decrypt flow with two keys', async () => {
         const password = await recrypt.getNewPassword();
         const keyOrigin = await recrypt.generateKeys();
-        const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin);
+        const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin, keyOrigin.public.publicKey);
         
         const keyRecipient = await recrypt.generateKeys();
 

@@ -3,6 +3,17 @@ const Api256 = new Recrypt.Api256();
 
 const TYPE = 'ironcore-0';
 
+module.exports = {
+  type: TYPE,
+  getNewPassword,
+  encryptPassword,
+  decryptPassword,
+  generateKeys,
+  getTransformKey,
+  transformPassword,
+  init: async () => { }
+}
+
 async function getTransformKey(originKeys, targetPublicKey) {
   const transformKey = Api256.generateTransformKey(
       stringToBuffer(originKeys.privateKey), 
@@ -46,22 +57,12 @@ async function getNewPassword() {
   return bufferToString(Api256.generatePlaintext());
 }
 
-async function encryptPassword(password, keySet) {
-  const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(keySet.public.publicKey), stringToBuffer(keySet.signPrivateKey));
+async function encryptPassword(password, signingkeySet, targetPublicKey) {
+  const encryptedPassword = Api256.encrypt(stringToBuffer(password), stringToPublicKey(targetPublicKey), stringToBuffer(signingkeySet.signPrivateKey));
   return encryptedPasswordToString(encryptedPassword);
 }
 
-
-module.exports = {
-  type: TYPE,
-  getNewPassword,
-  encryptPassword,
-  decryptPassword,
-  generateKeys,
-  getTransformKey,
-  transformPassword,
-  init: async () => { }
-}
+// --- utilities 
 
 function bufferToString(buffer) {
   return buffer.toString('base64');

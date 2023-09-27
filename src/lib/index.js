@@ -30,19 +30,22 @@ async function getRecrypt(recryptId) {
  * @param {*} use 
  * @returns {EncryptedPayLoad}
  */
-async function encryptWithKeys(data, keySet, use = {}) {
-  if (use.recrypt && keySet.public.type !== use.recrypt) {
-    throw new Error(`Cannot use recryptType: ${use.recrypt} with this key of type: ${keySet.public.type}`);
+async function encryptWithKeys(data, signKeySet, encryptingPublicKeySet, use = {}) {
+  if (use.recrypt && encryptingPublicKeySet.type !== use.recrypt) {
+    throw new Error(`Cannot use recryptType: ${use.recrypt} with this key of type: ${encryptingPublicKeySet.type}`);
+  }
+  if (encryptingPublicKeySet.type !== signKeySet.public.type) {
+    throw new Error(`Cannot use sign with type: ${signKeySet.public.type} with this public key of type: ${encryptingPublicKeySet.type}`);
   }
 
-  const recrypt = await getRecrypt(keySet.public.type);
+  const recrypt = await getRecrypt(encryptingPublicKeySet.type);
   const envelope = getEnvelope(use.envelope);
 
   const password = await recrypt.getNewPassword();
-  const encryptedPassword = await recrypt.encryptPassword(password, keySet);
+  const encryptedPassword = await recrypt.encryptPassword(password, signKeySet, encryptingPublicKeySet.publicKey);
   const encryptedData = envelope.encrypt(data, password);
   const type = recrypt.type + ':' + envelope.type;
-  const keyId = keySet.public.id + ':' + type;
+  const keyId = encryptingPublicKeySet.id + ':' + type;
   const encrypted = {keyId, encryptedPassword, encryptedData};
   return encrypted;
 }
@@ -95,7 +98,6 @@ function decryptWithPassword(data, password) {
 }
 
 function encryptWithPassword(data, password ) {
-  $$(data);
   const encryptedData = envelope.encrypt(data, password);
   const encrypted = { encryptedData };
   return encrypted;

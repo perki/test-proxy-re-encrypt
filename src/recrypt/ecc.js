@@ -39,11 +39,11 @@ async function generateKeys(id) {
   return key;
 }
 
-async function encryptPassword(password, keySet) {
-  const encryptedPassword = await ecc.pre_schema1_Encrypt(stringToUintArray(password), stringToUintArray(keySet.public.publicKey), {spk: stringToUintArray(keySet.public.signPublicKey), ssk: stringToUintArray(keySet.signPrivateKey)});
+async function encryptPassword(password, signingkeySet, targetPublicKey) {
+  const encryptedPassword = await ecc.pre_schema1_Encrypt(stringToUintArray(password), stringToUintArray(targetPublicKey), {spk: stringToUintArray(signingkeySet.public.signPublicKey), ssk: stringToUintArray(signingkeySet.signPrivateKey)});
   const pack = [
     uintArrayToString(encryptedPassword),
-    keySet.public.signPublicKey,
+    signingkeySet.public.signPublicKey,
     1
   ];
   return JSON.stringify(pack);
@@ -69,7 +69,7 @@ async function transformPassword(encryptedPassword, transformKey, proxyKeys) {
   const transformedPassword = await ecc.pre_schema1_ReEncrypt(
     stringToUintArray(encryptedPasswordItem), 
     stringToUintArray(reEncKey), 
-    stringToUintArray(originKeySignPublicKey),
+    stringToUintArray(signPublicKey),
     stringToUintArray(targetPublicKey),
     {spk: stringToUintArray(proxyKeys.public.signPublicKey), ssk: stringToUintArray(proxyKeys.signPrivateKey)});
 
