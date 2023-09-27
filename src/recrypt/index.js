@@ -1,5 +1,5 @@
 const ironcore = require('./ironcore');
-const aldenmlecc = require('./ecc');
+const aldenmlecc = require('./aldenml-ecc');
 
 const recrypts = {
   [ironcore.type]: ironcore,
