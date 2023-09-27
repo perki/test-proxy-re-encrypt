@@ -37,9 +37,9 @@ for (const recryptType of lib.recryptTypes) {
         const partyKeys = await lib.generateKeys('party', use);
         const encrypted = await lib.encryptWithKeys(myData, partyKeys, originKeys.public, use);
         const infos = infoFromKeyId(encrypted.keyId);
-        assert.equal(infos.id, 'origin', 'Orgin key is kept');
-        assert.equal(infos.recrypt, recryptType, 'Recrypt type is correct');
-        assert.equal(infos.envelope, envelopeType, 'Envelope type is correct');
+        assert.equal(infos.id, 'origin', 'Orgin key is not kept');
+        assert.equal(infos.recrypt, recryptType, 'Recrypt type is not correct');
+        assert.equal(infos.envelope, envelopeType, 'Envelope type is not correct');
         const decryptedData = await lib.decryptWithKeys(encrypted, originKeys.privateKey);
         assert.deepEqual(myData, decryptedData);
       });
@@ -54,9 +54,16 @@ for (const recryptType of lib.recryptTypes) {
 
         // Origin generate transform Key
         const transformKeyOriginToRecipient = await lib.getTransformKey(originKeys, recipientKeys.public);
- 
+        assert.equal(transformKeyOriginToRecipient.fromId, 'origin', 'From id is notcorrect');
+        assert.equal(transformKeyOriginToRecipient.toId, 'recipient', 'Recipient id is not correct');
+        assert.equal(transformKeyOriginToRecipient.type, recryptType, 'Recrypt type is not correct');
+
         // Proxy transform encrypted Data
         const recrypted = await lib.recryptForKeys(encrypted, transformKeyOriginToRecipient, proxyKeys);
+        const infos = infoFromKeyId(recrypted.keyId);
+        assert.equal(infos.id, 'recipient', 'Recipient id is not correctly set');
+        assert.equal(infos.recrypt, recryptType, 'Recrypt type is not correct');
+        assert.equal(infos.envelope, envelopeType, 'Envelope type is not correct');
 
         // Recipient decrypt data 
         const decryptedData = await lib.decryptWithKeys(recrypted, recipientKeys.privateKey);

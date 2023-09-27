@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx mocha",
+    "cover": "npx nyc --reporter=html --report-dir=./coverage npx mocha",
     "api": "node src/index.js",
     "oo": "node src/oo-index.js",
     "build": "./node_modules/.bin/webpack",
