@@ -1,5 +1,5 @@
 const Recrypt = require('@ironcorelabs/recrypt-node-binding');
-const Api256 = new Recrypt.Api256();
+let Api256;
 
 const TYPE = 'ironcore-0';
 
@@ -11,7 +11,15 @@ module.exports = {
   generateKeys,
   getTransformKey,
   transformPassword,
-  init: async () => { }
+  init: async () => { 
+    if (typeof Recrypt === 'object' && typeof Recrypt.then === 'function') {
+      // in browser Recrypt is a Promise 
+      const re = await Recrypt;
+      Api256 = new re.Api256();
+    } else { // node.js
+      Api256 = new Recrypt.Api256();
+    }
+  },
 }
 
 async function getTransformKey(originKeys, targetPublicKey) {

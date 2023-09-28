@@ -1,12 +1,16 @@
-//const Recrypt = require('@ironcorelabs/recrypt-wasm-binding');
-import * as Recrypt from "@ironcorelabs/recrypt-wasm-binding";
-const lib = require('../src/lib/recrypt');
-lib.init(Recrypt);
 
-function clog() {
-  document.write(...arguments);
-  document.write('<br>');
-}
+const lib = require('../src/lib/');
 
-
-require('../src/flow')(clog);
+(async () => {
+  for (const recryptType of lib.recryptTypes) {
+    for (const envelopeType of lib.envelopeTypes) {
+      const use = {
+        envelope: envelopeType,
+        recrypt: recryptType
+      }
+      console.log({use});
+      const originKeys = await lib.generateKeys('origin', use);
+      console.log({originKeys});
+    }
+  }
+})();
