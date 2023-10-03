@@ -49,11 +49,12 @@ async function encryptPassword(password, signingkeySet, targetPublicKey) {
   return JSON.stringify(pack);
 }
 
-async function getTransformKey(originKeys, targetPublicKey) {
+async function getTransformKey(originKeys, targetPublicKey, signingkeySet) {
+  const signWith = signingkeySet || originKeys;
   const reEncKey = await ecc.pre_schema1_ReKeyGen(
     stringToUintArray(originKeys.privateKey), 
     stringToUintArray(targetPublicKey), 
-    {ssk: stringToUintArray(originKeys.signPrivateKey), spk: stringToUintArray(originKeys.public.signPublicKey)});
+    {ssk: stringToUintArray(signWith.signPrivateKey), spk: stringToUintArray(signWith.public.signPublicKey)});
    const pack = [
     uintArrayToString(reEncKey),
     originKeys.public.signPublicKey,

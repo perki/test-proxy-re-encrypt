@@ -56,6 +56,7 @@ for (const recryptType of lib.recryptTypes) {
         const transformKeyOriginToRecipient = await lib.getTransformKey(originKeys, recipientKeys.public);
         assert.equal(transformKeyOriginToRecipient.fromId, 'origin', 'From id is notcorrect');
         assert.equal(transformKeyOriginToRecipient.toId, 'recipient', 'Recipient id is not correct');
+        assert.equal(transformKeyOriginToRecipient.signId, 'origin', 'signId is not correct');
         assert.equal(transformKeyOriginToRecipient.type, recryptType, 'Recrypt type is not correct');
 
         // Proxy transform encrypted Data
@@ -72,17 +73,27 @@ for (const recryptType of lib.recryptTypes) {
       });
 
       it('Encrypt by Proxy / Recrypt by Proxy / Decrypt by Third Party', async function () {
-        if (use.recrypt === 'aldenml-ecc-0') {
-          this.skip();
-        }
         const originKeys = await lib.generateKeys('origin', use);
         const proxyKeys = await lib.generateKeys('proxy', use);
+        const proxySignKeys = {
+          signPrivateKey: proxyKeys.signPrivateKey,
+          public: {
+            type: proxyKeys.public.type,
+            id: proxyKeys.public.id,
+            signPublicKey: proxyKeys.public.signPublicKey
+          }
+        }
+
         const recipientKeys = await lib.generateKeys('recipient', use);
 
-        const encrypted = await lib.encryptWithKeys(myData, proxyKeys, originKeys.public, use);
+        const encrypted = await lib.encryptWithKeys(myData, proxySignKeys, originKeys.public, use);
   
         // Origin generate transform Key
-        const transformKeyOriginToRecipient = await lib.getTransformKey(originKeys, recipientKeys.public);
+        const transformKeyOriginToRecipient = await lib.getTransformKey(originKeys, recipientKeys.public, proxySignKeys);
+        assert.equal(transformKeyOriginToRecipient.fromId, 'origin', 'fromId is not correctly set');
+        assert.equal(transformKeyOriginToRecipient.toId, 'recipient', 'toId is not correct');
+        assert.equal(transformKeyOriginToRecipient.signId, 'proxy', 'signId is not correct');
+        assert.equal(transformKeyOriginToRecipient.type, recryptType, 'Recrypt type is not correct');
 
         // Proxy transform encrypted Data
         const recrypted = await lib.recryptForKeys(encrypted, transformKeyOriginToRecipient, proxyKeys);

@@ -22,11 +22,12 @@ module.exports = {
   },
 }
 
-async function getTransformKey(originKeys, targetPublicKey) {
+async function getTransformKey(originKeys, targetPublicKey, signingkeySet) {
+  const signWith = signingkeySet || originKeys;
   const transformKey = Api256.generateTransformKey(
       stringToBuffer(originKeys.privateKey), 
       stringToPublicKey(targetPublicKey), 
-      stringToBuffer(originKeys.signPrivateKey));
+      stringToBuffer(signWith.signPrivateKey));
   return transformKeyToString(transformKey);
 }
 

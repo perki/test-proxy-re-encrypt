@@ -113,15 +113,20 @@ async function generateKeys(id, use = {}) {
   return recrypt.generateKeys(id);
 }
 
-async function getTransformKey(originKeys, targetPublicKeySet) {
+async function getTransformKey(originKeys, targetPublicKeySet, signingkeySet) {
+  const signWith = signingkeySet || originKeys;
   if (originKeys.public.type != targetPublicKeySet.type) {
-    throw new Error(`Mismatching types for transmform get origin: ${originKeys.public.type}, target: ${targetPublicKeySet.type}`)
+    throw new Error(`Mismatching types for transform get, origin: ${originKeys.public.type}, target: ${targetPublicKeySet.type}`)
+  }
+  if (signWith.public.type != targetPublicKeySet.type) {
+    throw new Error(`Mismatching types for transform get, signing: ${signWith.public.type}, target: ${targetPublicKeySet.type}`)
   }
   const recrypt = await getRecrypt(originKeys.public.type);
-  const key = await recrypt.getTransformKey(originKeys, targetPublicKeySet.publicKey);
+  const key = await recrypt.getTransformKey(originKeys, targetPublicKeySet.publicKey, signWith);
   return {
     fromId: originKeys.public.id,
     toId: targetPublicKeySet.id,
+    signId: signWith.public.id,
     type: originKeys.public.type,
     key
   }

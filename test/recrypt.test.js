@@ -59,7 +59,7 @@ describe('recrypt', function () {
         assert.equal(password, decryptedPassword, 'Decrypted password should match password');
       });
 
-      it('Full crypt / transform / decrypt flow with two keys', async () => {
+      it('Full crypt by Origin / transform / decrypt flow with two keys', async () => {
         const password = await recrypt.getNewPassword();
         const keyOrigin = await recrypt.generateKeys();
         const encryptedPassword = await recrypt.encryptPassword(password, keyOrigin, keyOrigin.public.publicKey);
@@ -70,6 +70,35 @@ describe('recrypt', function () {
         assert.isString(transformKeyOriginToRecipient);
 
         const proxyKeys = await recrypt.generateKeys();
+        const encryptedPasswordForRecipient = await recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys);
+
+        const decryptedPassword = await recrypt.decryptPassword(encryptedPasswordForRecipient, keyRecipient.privateKey);
+        assert.equal(password, decryptedPassword, 'Decrypted password should match password');
+      });
+
+      it('Full crypt by Proxy / transform / decrypt flow with two keys', async () => {
+        const password = await recrypt.getNewPassword();
+        const keyOrigin = await recrypt.generateKeys();
+        const proxyKeys = await recrypt.generateKeys();
+
+        // !! This implies that Origin knows the private and public signing keys of Proxy
+        const proxySignKeys = {
+          signPrivateKey: proxyKeys.signPrivateKey,
+          public: {
+            type: proxyKeys.public.type,
+            id: proxyKeys.public.id,
+            signPublicKey: proxyKeys.public.signPublicKey
+          }
+        }
+
+        const encryptedPassword = await recrypt.encryptPassword(password, proxySignKeys, keyOrigin.public.publicKey);
+        
+        const keyRecipient = await recrypt.generateKeys();
+
+        const transformKeyOriginToRecipient = await recrypt.getTransformKey(keyOrigin, keyRecipient.public.publicKey, proxySignKeys);
+        assert.isString(transformKeyOriginToRecipient);
+
+        
         const encryptedPasswordForRecipient = await recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys);
 
         const decryptedPassword = await recrypt.decryptPassword(encryptedPasswordForRecipient, keyRecipient.privateKey);

@@ -20,17 +20,19 @@ async function main() {
   const message = await ecc.pre_schema1_MessageGen();
   const messageS = uintArrayToString(message);
 
-  // client C encrypts the message with A key
+  // proxy encrypts the message with A key
   const ciphertextLevel1 = await ecc.pre_schema1_Encrypt(
     message,
     keysA.pk,
-    signingC);
+    signingProxy);
+    //signingC);
 
   // client A is able to decrypt ciphertextLevel1 
   const messageDecrypted1 = await ecc.pre_schema1_DecryptLevel1(
     ciphertextLevel1,
     keysA.sk,
-    signingC.spk
+    signingProxy.spk
+    // signingC.spk
   );
 
   console.log(' Message decrypted == message ', (messageS == uintArrayToString(messageDecrypted1)));
@@ -44,7 +46,8 @@ async function main() {
   const reEncKey = await ecc.pre_schema1_ReKeyGen(
     keysA.sk, 
     keysB.pk, 
-    signingC // ⚠️ HERE I WOULD LIKE TO AVOID USING `C` signing Key
+    // signingC // ⚠️ HERE I WOULD LIKE TO AVOID USING `C` signing Key
+    signingProxy
   );
 
   // the proxy re-encrypt the ciphertext ciphertextLevel1 with such
@@ -52,7 +55,8 @@ async function main() {
   const ciphertextLevel2 = await ecc.pre_schema1_ReEncrypt(
     ciphertextLevel1,
     reEncKey,
-    signingC.spk, // ⚠️ HERE I WOULD LIKE TO AVOID USING `C` signing Key
+    //signingC.spk, // ⚠️ HERE I WOULD LIKE TO AVOID USING `C` signing Key
+    signingProxy.spk,
     keysB.pk, 
     signingProxy
   );
