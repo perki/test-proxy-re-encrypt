@@ -142,6 +142,22 @@ function useFromKeyId(key) {
   return {id, recrypt, envelope};
 }
 
+function signingKeySetFromKeys (keySet) {
+  return {
+    signPrivateKey: keySet.signPrivateKey,
+    public: {
+      type: keySet.public.type,
+      id: keySet.public.id,
+      signPublicKey: keySet.public.signPublicKey
+    }
+  }
+}
+
+async function recryptSupportsPublicEncryption (type) {
+  const recrypt = await getRecrypt(type);
+  return recrypt.supportsPublicEncryption;
+}
+
 module.exports = {
   encryptWithKeys,
   encryptWithPassword,
@@ -152,6 +168,8 @@ module.exports = {
   getTransformKey,
   transformPassword,
   recryptForKeys,
+  signingKeySetFromKeys,
+  recryptSupportsPublicEncryption,
   defaults,
   envelopeTypes: envelopes.list(),
   recryptTypes: recrypts.list()

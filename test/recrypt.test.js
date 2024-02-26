@@ -98,7 +98,6 @@ describe('recrypt', function () {
         const transformKeyOriginToRecipient = await recrypt.getTransformKey(keyOrigin, keyRecipient.public.publicKey, proxySignKeys);
         assert.isString(transformKeyOriginToRecipient);
 
-        
         const encryptedPasswordForRecipient = await recrypt.transformPassword(encryptedPassword, transformKeyOriginToRecipient, proxyKeys);
 
         const decryptedPassword = await recrypt.decryptPassword(encryptedPasswordForRecipient, keyRecipient.privateKey);

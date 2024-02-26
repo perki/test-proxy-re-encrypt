@@ -5,6 +5,7 @@ const TYPE = 'aldenml-ecc-0';
 
 module.exports = {
   type: TYPE,
+  supportsPublicEncryption: false,
   getNewPassword,
   encryptPassword,
   decryptPassword,

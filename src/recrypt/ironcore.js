@@ -5,6 +5,7 @@ const TYPE = 'ironcore-0';
 
 module.exports = {
   type: TYPE,
+  supportsPublicEncryption: true,
   getNewPassword,
   encryptPassword,
   decryptPassword,

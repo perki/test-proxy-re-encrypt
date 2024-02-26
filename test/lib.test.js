@@ -75,14 +75,7 @@ for (const recryptType of lib.recryptTypes) {
       it('Encrypt by Proxy / Recrypt by Proxy / Decrypt by Third Party', async function () {
         const originKeys = await lib.generateKeys('origin', use);
         const proxyKeys = await lib.generateKeys('proxy', use);
-        const proxySignKeys = {
-          signPrivateKey: proxyKeys.signPrivateKey,
-          public: {
-            type: proxyKeys.public.type,
-            id: proxyKeys.public.id,
-            signPublicKey: proxyKeys.public.signPublicKey
-          }
-        }
+        const proxySignKeys = lib.signingKeySetFromKeys(proxyKeys);
 
         const recipientKeys = await lib.generateKeys('recipient', use);
 
@@ -93,6 +86,34 @@ for (const recryptType of lib.recryptTypes) {
         assert.equal(transformKeyOriginToRecipient.fromId, 'origin', 'fromId is not correctly set');
         assert.equal(transformKeyOriginToRecipient.toId, 'recipient', 'toId is not correct');
         assert.equal(transformKeyOriginToRecipient.signId, 'proxy', 'signId is not correct');
+        assert.equal(transformKeyOriginToRecipient.type, recryptType, 'Recrypt type is not correct');
+
+        // Proxy transform encrypted Data
+        const recrypted = await lib.recryptForKeys(encrypted, transformKeyOriginToRecipient, proxyKeys);
+
+        // Recipient decrypt data 
+        const decryptedData = await lib.decryptWithKeys(recrypted, recipientKeys.privateKey);
+
+        assert.deepEqual(myData, decryptedData);
+      });
+
+
+      it('Encrypt by Public / Recrypt by Proxy / Decrypt by Third Party', async function () {
+        if (! await lib.recryptSupportsPublicEncryption(recryptType)) { this.skip(); }
+        const originKeys = await lib.generateKeys('origin', use);
+        const proxyKeys = await lib.generateKeys('proxy', use);
+        const fourthPartyKeys = await lib.generateKeys('fourthParty', use);
+        const fourthPartySigninKeys = lib.signingKeySetFromKeys(fourthPartyKeys);
+
+        const recipientKeys = await lib.generateKeys('recipient', use);
+
+        const encrypted = await lib.encryptWithKeys(myData, fourthPartySigninKeys, originKeys.public, use);
+  
+        // Origin generate transform Key
+        const transformKeyOriginToRecipient = await lib.getTransformKey(originKeys, recipientKeys.public);
+        assert.equal(transformKeyOriginToRecipient.fromId, 'origin', 'fromId is not correctly set');
+        assert.equal(transformKeyOriginToRecipient.toId, 'recipient', 'toId is not correct');
+        assert.equal(transformKeyOriginToRecipient.signId, 'origin', 'signId is not correct');
         assert.equal(transformKeyOriginToRecipient.type, recryptType, 'Recrypt type is not correct');
 
         // Proxy transform encrypted Data
