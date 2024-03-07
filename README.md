@@ -15,7 +15,7 @@ Web:
 
 - `npm run build` Build web based example
 - `npm run web` Run webserver 
-- Open https://l.rec.la:4443 to see web based example 
+- Open https://l.backloop.dev:4443 to see web based example 
 
 This page is published on [https://perki.github.io/test-proxy-re-encrypt/](https://perki.github.io/test-proxy-re-encrypt/)
 

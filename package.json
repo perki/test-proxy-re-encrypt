@@ -9,7 +9,7 @@
     "api": "node src/index.js",
     "oo": "node src/oo-index.js",
     "build": "./node_modules/.bin/webpack",
-    "web": "./node_modules/.bin/rec.la ./docs"
+    "web": "./node_modules/.bin/backloop.dev ./docs"
   },
   "author": "",
   "license": "ISC",
@@ -24,7 +24,7 @@
     "copy-webpack-plugin": "^10.2.0",
     "crypto-browserify": "^3.12.0",
     "process": "^0.11.10",
-    "rec.la": "^0.3.0",
+    "backloop.dev": "latest",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
     "webpack": "^5.65.0",
