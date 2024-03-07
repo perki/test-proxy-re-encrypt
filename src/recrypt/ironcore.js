@@ -13,6 +13,7 @@ module.exports = {
   getTransformKey,
   transformPassword,
   init: async () => { 
+    if (Api256 != null) return;
     if (typeof Recrypt === 'object' && typeof Recrypt.then === 'function') {
       // in browser Recrypt is a Promise 
       const re = await Recrypt;
