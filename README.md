@@ -29,6 +29,7 @@ This page is published on [https://perki.github.io/test-proxy-re-encrypt/](https
   - Find a better way to store type and size 
   - Implement streaming 
   - Check "sub access mechanism" 
+  - Finalize Web testing and usage
 
 Other implementation to look at: https://github.com/aldenml/ecc
 https://www.npmjs.com/package/@aldenml/ecc
