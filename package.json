@@ -11,20 +11,23 @@
     "build": "./node_modules/.bin/webpack",
     "web": "./node_modules/.bin/backloop.dev ./docs"
   },
+  "engines": {
+      "node": "~20.19.4"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@aldenml/ecc": "^1.0.4",
-    "@ironcorelabs/recrypt-node-binding": "^0.9.1",
+    "@ironcorelabs/recrypt-node-binding": "^0.10.1",
     "@ironcorelabs/recrypt-wasm-binding": "^0.6.0"
   },
   "devDependencies": {
+    "backloop.dev": "^2.0.6",
     "buffer": "^6.0.3",
     "chai": "^4.3.7",
     "copy-webpack-plugin": "^10.2.0",
     "crypto-browserify": "^3.12.0",
     "process": "^0.11.10",
-    "backloop.dev": "latest",
     "stream-browserify": "^3.0.0",
     "util": "^0.12.5",
     "webpack": "^5.65.0",
