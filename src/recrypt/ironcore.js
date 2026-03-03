@@ -76,7 +76,7 @@ async function encryptPassword(password, signingkeySet, targetPublicKey) {
 // --- utilities 
 
 function bufferToString(buffer) {
-  return buffer.toString('base64');
+  return Buffer.from(buffer).toString('base64');
 }
 
 function stringToBuffer(string) {
@@ -84,7 +84,7 @@ function stringToBuffer(string) {
 }
 
 function publicKeyToString(publicKey) {
-  return publicKey.x.toString('base64') + ' ' + publicKey.y.toString('base64');
+  return bufferToString(publicKey.x) + ' ' + bufferToString(publicKey.y);
 }
 
 function stringToPublicKey(string) {
@@ -98,10 +98,10 @@ function stringToPublicKey(string) {
 function encryptedPasswordToString(data) {
   const res = [
     publicKeyToString(data.ephemeralPublicKey),
-    data.encryptedMessage.toString('base64'),
-    data.authHash.toString('base64'),
-    data.publicSigningKey.toString('base64'),
-    data.signature.toString('base64'),
+    bufferToString(data.encryptedMessage),
+    bufferToString(data.authHash),
+    bufferToString(data.publicSigningKey),
+    bufferToString(data.signature),
     data.transformBlocks.map(transformBlockToObjectOfStrings)
   ];
   return JSON.stringify(res);
@@ -144,10 +144,10 @@ function transformKeyToString(transfromKey) {
   const res = [
     publicKeyToString(transfromKey.toPublicKey),
     publicKeyToString(transfromKey.ephemeralPublicKey),
-    transfromKey.encryptedTempKey.toString('base64'),
-    transfromKey.hashedTempKey.toString('base64'),
-    transfromKey.publicSigningKey.toString('base64'),
-    transfromKey.signature.toString('base64')
+    bufferToString(transfromKey.encryptedTempKey),
+    bufferToString(transfromKey.hashedTempKey),
+    bufferToString(transfromKey.publicSigningKey),
+    bufferToString(transfromKey.signature)
   ];
   return JSON.stringify(res);
 }

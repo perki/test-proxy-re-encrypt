@@ -83,7 +83,7 @@ async function decryptWithKeys(data, privateKey) {
   if (data.encryptedPassword == null) {
     throw new Error('Cannot decrypt data with private key, if payload does not contain encrypted password');
   }
-  const use = infosFromKeyId = useFromKeyId(data.keyId);
+  const use = useFromKeyId(data.keyId);
   const recrypt = recrypts.get(use.recrypt);
   const password = await recrypt.decryptPassword(data.encryptedPassword, privateKey);
   const decryptedData = decryptWithPassword(data, password);
@@ -91,7 +91,7 @@ async function decryptWithKeys(data, privateKey) {
 }
 
 function decryptWithPassword(data, password) {
-  const use = infosFromKeyId = useFromKeyId(data.keyId);
+  const use = useFromKeyId(data.keyId);
   const envelope = envelopes.get(use.envelope);
   const decryptedData = envelope.decrypt(data.encryptedData, password);
   return decryptedData;
