@@ -104,10 +104,6 @@ function encryptWithPassword(data, password, use = {}) {
   return encrypted;
 }
 
-async function decryptPassword(encryptedPassword, privateKey) {
-  $$(encryptedPassword);
-  // recrypt.decryptPassword
-}
 
 async function generateKeys(id, use = {}) {
   const recrypt = await getRecrypt(use.recrypt);
@@ -133,10 +129,6 @@ async function getTransformKey(originKeys, targetPublicKeySet, signingkeySet) {
   }
 }
 
-async function transformPassword(encryptedPassword, transformKey, proxyKeySet) {
-  $$(encryptedPassword);
-  // : recrypt.transformPassword
-}
 
 function useFromKeyId(key) {
   if (typeof key !== 'string') {
@@ -168,12 +160,10 @@ async function recryptSupportsPublicEncryption (type) {
 module.exports = {
   encryptWithKeys,
   encryptWithPassword,
-  decryptPassword,
   decryptWithPassword,
   decryptWithKeys,
   generateKeys,
   getTransformKey,
-  transformPassword,
   recryptForKeys,
   signingKeySetFromKeys,
   recryptSupportsPublicEncryption,

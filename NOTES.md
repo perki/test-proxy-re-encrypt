@@ -1,6 +1,11 @@
-# References for AES-256 GCM
+**Investigating:**
+- How to rotate keys:
+  - inspiration: https://github.com/IronCoreLabs/ironnode/blob/01df7123ee25ad3991c3158c1784b830f0d008d0/src/crypto/Recrypt.ts#L54
 
-Browser: https://jsfiddle.net/arbusx/fe5x63w4/14/
-Node: https://gist.github.com/rjz/15baffeab434b8125ca4d783f4116d81
+- Average simple encryption / decryption flow 15ms / char
 
-
+**Todo**
+  - Find a better way to store type and size
+  - Implement streaming
+  - Check "sub access mechanism"
+  - Finalize Web testing and usage

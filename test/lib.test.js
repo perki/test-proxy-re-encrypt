@@ -1,5 +1,3 @@
-require('./helpers');
-
 const { assert } = require('chai');
 const lib = require('../src/lib');
 

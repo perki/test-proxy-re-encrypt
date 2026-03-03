@@ -2,12 +2,10 @@
   "name": "test-proxy-re-encrypt",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/lib/index.js",
   "scripts": {
     "test": "npx mocha",
     "cover": "npx nyc --reporter=html --report-dir=./coverage npx mocha",
-    "api": "node src/index.js",
-    "oo": "node src/oo-index.js",
     "build": "./node_modules/.bin/webpack",
     "web": "./node_modules/.bin/backloop.dev ./docs 8465"
   },

@@ -1,36 +1,26 @@
-# Testing proxy re-encryption
+# Proxy Re-Encryption Library
 
+A library for proxy re-encryption using [IronCoreLabs recrypt](https://github.com/IronCoreLabs/recrypt-node-binding) and [aldenml/ecc](https://github.com/aldenml/ecc), with envelope encryption (AES-256-GCM, AES-192).
 
-Testing https://github.com/IronCoreLabs/recrypt-node-binding [IronCoreLabs](https://github.com/IronCoreLabs) proxy re-encryption
+## Setup
 
-Everything starts in src/index.js
+```
+npm install
+```
 
-Object oriented implementation in src/oo-index.js
+## Tests
 
-- `npm install` setup
-- `npm run api` direct api example
-- `npm run oo` Object Oriented example
+```
+npm test
+```
 
-Web:
+## Browser Tests
 
-- `npm run build` Build web based example
-- `npm run web` Run webserver 
-- Open https://l.backloop.dev:4443 to see web based example 
+```
+npm run build
+npm run web
+```
 
-This page is published on [https://perki.github.io/test-proxy-re-encrypt/](https://perki.github.io/test-proxy-re-encrypt/)
+Then open https://whatever.backloop.dev:8465/tests.html
 
-**Investigating:**
-- How to rotate keys: 
-  - inspiration: https://github.com/IronCoreLabs/ironnode/blob/01df7123ee25ad3991c3158c1784b830f0d008d0/src/crypto/Recrypt.ts#L54
-
-- Average simple encryption / decryption flow 15ms / char
-
-**Todo** 
-  - Find a better way to store type and size 
-  - Implement streaming 
-  - Check "sub access mechanism" 
-  - Finalize Web testing and usage
-
-Other implementation to look at: https://github.com/aldenml/ecc
-https://www.npmjs.com/package/@aldenml/ecc
-
+Published at [https://perki.github.io/test-proxy-re-encrypt/](https://perki.github.io/test-proxy-re-encrypt/)

@@ -1,4 +1,3 @@
-require('./helpers');
 const envelopes = require('../src/envelope');
 
 const { assert } = require('chai');

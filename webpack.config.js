@@ -3,46 +3,6 @@ const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 
 module.exports = [
-  {
-    mode: 'production',
-    entry: {
-      app: {
-        import: './web/index.js',
-        library: {
-          name: 'lib',
-          type: 'var'
-        }
-      }
-    },
-    output: {
-      filename: 'app.js',
-      path: distPath(),
-      webassemblyModuleFilename: 'app.wasm',
-      //globalObject: "typeof self !== 'object' ? self : this"
-    },
-    devtool: 'source-map',
-    experiments: { asyncWebAssembly: true },
-    resolve: {
-      fallback: {
-        crypto: require.resolve('crypto-browserify'),
-        stream: require.resolve('stream-browserify'),
-        buffer: require.resolve('buffer/')
-      },
-      alias: {
-        '@ironcorelabs/recrypt-node-binding': require.resolve('@ironcorelabs/recrypt-wasm-binding'),
-      }
-    },
-    plugins: [
-      new webpack.ProvidePlugin({
-        Buffer: ['buffer', 'Buffer']
-      }),
-      new CopyPlugin({
-        patterns: [
-          { from: 'web/index.html', to: './' },
-        ],
-      }),
-    ]
-  },
   { // browser test suite (ES6)
     mode: 'development',
     entry: {
