@@ -58,7 +58,7 @@ async function encryptWithKeys(data, signKeySet, encryptingPublicKeySet, use = {
  */
 async function recryptForKeys(encrypted, transformKey, proxyKeySet) {
   const use = useFromKeyId(encrypted.keyId);
-  if (use.id != transformKey.fromId) {
+  if (use.id !== transformKey.fromId) {
     throw new Error(`Cannot recrypt content encrypted from  ${use.id} using a transform Key from ${transformKey.fromId}`)
   }
 
@@ -84,7 +84,7 @@ async function decryptWithKeys(data, privateKey) {
     throw new Error('Cannot decrypt data with private key, if payload does not contain encrypted password');
   }
   const use = useFromKeyId(data.keyId);
-  const recrypt = recrypts.get(use.recrypt);
+  const recrypt = await getRecrypt(use.recrypt);
   const password = await recrypt.decryptPassword(data.encryptedPassword, privateKey);
   const decryptedData = decryptWithPassword(data, password);
   return decryptedData;
@@ -97,7 +97,8 @@ function decryptWithPassword(data, password) {
   return decryptedData;
 }
 
-function encryptWithPassword(data, password ) {
+function encryptWithPassword(data, password, use = {}) {
+  const envelope = getEnvelope(use.envelope);
   const encryptedData = envelope.encrypt(data, password);
   const encrypted = { encryptedData };
   return encrypted;
@@ -138,7 +139,13 @@ async function transformPassword(encryptedPassword, transformKey, proxyKeySet) {
 }
 
 function useFromKeyId(key) {
+  if (typeof key !== 'string') {
+    throw new Error('Invalid keyId: expected a string');
+  }
   const [id, recrypt, envelope] = key.split(':');
+  if (!id || !recrypt || !envelope) {
+    throw new Error(`Invalid keyId format: "${key}", expected "id:recrypt:envelope"`);
+  }
   return {id, recrypt, envelope};
 }
 
