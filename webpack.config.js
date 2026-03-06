@@ -11,7 +11,7 @@ module.exports = [
     output: {
       filename: 'tests.js',
       path: distPath(),
-      webassemblyModuleFilename: 'tests.wasm'
+      webassemblyModuleFilename: '[hash].wasm'
       //globalObject: "typeof self !== 'object' ? self : this" // need by mocha for some reasons
     },
     plugins: [

@@ -1,9 +1,13 @@
 const ironcore = require('./ironcore');
 const aldenmlecc = require('./aldenml-ecc');
+const recryptjs = require('./recrypt-js');
+const umbralpre = require('./umbral-pre');
 
 const recrypts = {
   [ironcore.type]: ironcore,
   [aldenmlecc.type]: aldenmlecc,
+  [recryptjs.type]: recryptjs,
+  [umbralpre.type]: umbralpre,
 }
 
 module.exports = { get, list };
